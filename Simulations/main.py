@@ -14,7 +14,7 @@ import examples as ex
 # num_repetitions = 5
 #
 # prices = num_repetitions * [1, phi]
-# consumptions = num_repetitions * [0, 1]
+# demands = num_repetitions * [0, 1]
 #
 # opt = num_repetitions * [1, 0]
 # worst = num_repetitions * [0, 1]
@@ -31,11 +31,11 @@ import examples as ex
 
 
 # for i in range(len(prices)):
-#     #mindet.run(gamma, phi, prices[i], consumptions[i])
+#     #mindet.run(gamma, phi, prices[i], demands[i])
 #     #print(mindet.alg_list[0].cost)
-#     a3.run(gamma, phi, prices[i], consumptions[i])
+#     a3.run(gamma, phi, prices[i], demands[i])
 #     print(a3.cost)
-#     a4.run(gamma, phi, prices[i], consumptions[i])
+#     a4.run(gamma, phi, prices[i], demands[i])
 #     print(a4.cost)
 #     #print(mindet.current_alg)
 #     #print(mindet.x)
@@ -48,19 +48,19 @@ import examples as ex
 # # a0.buy(1,1)
 # # print(a0.x)
 #
-# print(off.cost_opt(prices, consumptions, phi))
+# print(off.cost_opt(prices, demands, phi))
 
 # x = np.linspace(0, phi, 500)
 # hx = []
 # for j in range(len(x)):
-#     hx.append(off.h(4, x[j], prices, consumptions, phi))
+#     hx.append(off.h(4, x[j], prices, demands, phi))
 # plt.plot(x, hx)
 # plt.ylim(0,1.1)
 # plt.show()
 
-#history.run_and_generate_history_df(gamma, phi, prices, consumptions, [a0, a1], True)
+#history.run_and_generate_history_df(gamma, phi, prices, demands, [a0, a1], True)
 
-#history.run_and_print_history(gamma, phi, prices, consumptions, [a5, a6], True)
+#history.run_and_print_history(gamma, phi, prices, demands, [a5, a6], True)
 
 
 def to_latex_string(input):
@@ -186,10 +186,10 @@ history.run_and_generate_history_df(gamma, phi, prices, demands, [opt, ftp], Fal
 # n_iterations = 5
 #
 # #prices = n_iterations * [1, phi]
-# #consumptions = n_iterations * [0, 1]
+# #demands = n_iterations * [0, 1]
 #
 # prices = (phi - 1) * np.random.random(n_iterations) + 1
-# consumptions = np.random.random(n_iterations)
+# demands = np.random.random(n_iterations)
 #
 #
 # opt = 10 * [1, 0]
@@ -199,7 +199,7 @@ history.run_and_generate_history_df(gamma, phi, prices, demands, [opt, ftp], Fal
 # a1 = AlgorithmRandom(0, 0)
 # a2 = AlgorithmRandom(0, 0)
 #
-# algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(gamma, phi, prices, consumptions, [a0, a1, a2], True)
+# algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(gamma, phi, prices, demands, [a0, a1, a2], True)
 # print(algs_purchases)
 # print(mindet_purchases)
 # print(mindet_current_algs)
@@ -209,26 +209,26 @@ history.run_and_generate_history_df(gamma, phi, prices, demands, [opt, ftp], Fal
 #
 # #plot_history(algs_purchases, mindet_purchases, mindet_current_algs)
 #
-# #run_and_print_history(gamma, phi, prices, consumptions, [a0, a1, a2], True)
+# #run_and_print_history(gamma, phi, prices, demands, [a0, a1, a2], True)
 #
-# run_and_generate_history_df(gamma, phi, prices, consumptions, [a0, a1, a2], True)
+# run_and_generate_history_df(gamma, phi, prices, demands, [a0, a1, a2], True)
 
 # ### Test optimal offline algorithm
 # phi = 100
 #
 # prices = [0.5 * phi, 0.75 * phi, phi]
-# consumptions = [1, 0.5, 0.25]
+# demands = [1, 0.5, 0.25]
 #
-# print(h(3, 0.6 * phi, prices, consumptions, phi))
+# print(h(3, 0.6 * phi, prices, demands, phi))
 #
 # x = np.linspace(0, phi, 500)
 # hx = []
 # for j in range(len(x)):
-#     hx.append(h(3, x[j], prices, consumptions, phi))
+#     hx.append(h(3, x[j], prices, demands, phi))
 # plt.plot(x, hx)
 # plt.ylim(0,1.1)
 # plt.show()
 #
-# c_opt = cost_opt(prices, consumptions, phi)
+# c_opt = cost_opt(prices, demands, phi)
 # print(c_opt)
 

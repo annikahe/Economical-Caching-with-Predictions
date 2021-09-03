@@ -2,7 +2,7 @@ class Algorithm:
     """
     Basic framework for online algorithms for the Economical Caching Problem.
     Precise online algorithms will be defined as subclasses of this class.
-    Subclasses need to provide an implementation of the function buy(phi, price, consumption).
+    Subclasses need to provide an implementation of the function buy(phi, price, demand).
     ...
 
     Attributes
@@ -17,14 +17,14 @@ class Algorithm:
 
     Methods
     -------
-    run(gamma, phi, price, consumption)
+    run(gamma, phi, price, demand)
         Executes one step of the algorithm: Buys the amount x and updates the stock and accumulated cost accordingly.
 
-    buy(phi, price, consumption)
+    buy(phi, price, demand)
         Sets self.x. The function is not implemented in this class
         as it will be overwritten by the corresponding function in the subclasses.
 
-    update_stock(consumption)
+    update_stock(demand)
         Updates the stock level of the algorithm based on the current demand and self.x.
         In the case that the initial stock level and the amount that we are going to buy is not sufficient
         to cover the current demand, it will print out a string stating this error.
@@ -38,7 +38,7 @@ class Algorithm:
         that know when they are followed by MIN^det.
         Might be removed in the future.
 
-    get_max_amount_buy(self, consumption)
+    get_max_amount_buy(self, demand)
         Returns the maximum amount that the algorithm can buy in this time step.
     """
     def __init__(self, stock, cost):
@@ -46,24 +46,24 @@ class Algorithm:
         self.cost = cost
         self.x = 0
 
-    def run(self, gamma, phi, price, consumption):
-        self.buy(phi, price, consumption)
-        self.update_stock(consumption)
+    def run(self, gamma, phi, price, demand):
+        self.buy(phi, price, demand)
+        self.update_stock(demand)
         self.update_cost(price)
 
-    def buy(self, phi, price, consumption):
+    def buy(self, phi, price, demand):
         """
         Placeholder function for implementations in subclasses.
         """
         pass
 
-    def update_stock(self, consumption):
-        if self.x + self.stock < consumption:
-            print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {consumption}")
-        elif self.x < consumption:
-            self.stock -= (consumption - self.x)
+    def update_stock(self, demand):
+        if self.x + self.stock < demand:
+            print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {demand}")
+        elif self.x < demand:
+            self.stock -= (demand - self.x)
         else:
-            self.stock += (self.x - consumption)
+            self.stock += (self.x - demand)
 
     def update_cost(self, price):
         self.cost += price * self.x
@@ -71,8 +71,8 @@ class Algorithm:
     def update_turn(self, turn):
         pass
 
-    def get_max_amount_buy(self, consumption):
-        return 1 - self.stock + consumption
+    def get_max_amount_buy(self, demand):
+        return 1 - self.stock + demand
 
 
 class MinDet(Algorithm):
@@ -90,12 +90,12 @@ class MinDet(Algorithm):
 
     Methods
     -------
-    run(gamma, phi, price, consumption)
+    run(gamma, phi, price, demand)
         Overwrites the implementation of this function in the superclass.
         Additionally to just executing the algorithm itself, it also needs to execute the input algorithms
         and update self.cycle and self.current_alg.
 
-    buy(phi, price, consumption)
+    buy(phi, price, demand)
         Buys the same amount that the currently followed input algorithm buys.
 
     update_cycle(gamma, phi, price, current_stocks_algs)
@@ -110,7 +110,7 @@ class MinDet(Algorithm):
         self.cycle = 0
         self.current_alg = 0
 
-    def run(self, gamma, phi, price, consumption):
+    def run(self, gamma, phi, price, demand):
         """
         This is the main function of the MIN^det algorithm.
         For a given input (one time step of the sequence) it decides how much to buy and updates all parameters.
@@ -118,13 +118,13 @@ class MinDet(Algorithm):
         """
         current_stocks_algs = [alg.stock for alg in self.alg_list]
         for i, alg in enumerate(self.alg_list):
-            alg.run(gamma, phi, price, consumption)
+            alg.run(gamma, phi, price, demand)
         self.update_cycle(gamma, phi, price, current_stocks_algs)
-        self.buy(phi, price, consumption)
+        self.buy(phi, price, demand)
         self.update_cost(price)  # defined in superclass
-        self.update_stock(consumption)  # defined in superclass
+        self.update_stock(demand)  # defined in superclass
 
-    def buy(self, phi, price, consumption):
+    def buy(self, phi, price, demand):
         self.x = self.alg_list[self.current_alg].x
 
     def update_cycle(self, gamma, phi, price, current_stocks_algs):
@@ -227,7 +227,7 @@ class AlgorithmRandom(Algorithm):
 
     Methods
     -------
-    buy(phi, price, consumption)
+    buy(phi, price, demand)
         Sets self.x to a value uniformly drawn from the interval that is lower bounded by
         what the algorithm needs to buy at least in this step and what it can buy at most.
 
@@ -236,9 +236,9 @@ class AlgorithmRandom(Algorithm):
     def __init__(self, stock, cost):
         super().__init__(stock, cost)
 
-    def buy(self, phi, price, consumption):
+    def buy(self, phi, price, demand):
         import numpy as np
 
-        lower_bound = np.max([0, consumption - self.stock])
-        upper_bound = 1 - self.stock + consumption
+        lower_bound = np.max([0, demand - self.stock])
+        upper_bound = 1 - self.stock + demand
         self.x = (upper_bound - lower_bound) * np.random.rand() + lower_bound

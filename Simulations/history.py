@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 import pandas as pd
 
 
-def run_and_generate_history(gamma, phi, prices, consumptions, alg_list, with_mindet):
+def run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet):
     algs_purchases = [[] for i in range(len(alg_list))]
     algs_acc_costs = [[] for i in range(len(alg_list))]
     algs_stocks = [[] for i in range(len(alg_list))]
@@ -22,13 +22,13 @@ def run_and_generate_history(gamma, phi, prices, consumptions, alg_list, with_mi
 
     for i in range(len(prices)):
         price = prices[i]
-        consumption = consumptions[i]
+        demand = demands[i]
         if with_mindet:
-            mindet.run(gamma, phi, price, consumption)
+            mindet.run(gamma, phi, price, demand)
             mindet_current_algs.append(mindet.current_alg)
         for j, alg in enumerate(alg_list):
             if not with_mindet:
-                alg.run(gamma, phi, price, consumption)
+                alg.run(gamma, phi, price, demand)
             algs_purchases[j].append(alg.x)
             algs_acc_costs[j].append(alg.cost)
             algs_stocks[j].append(alg.stock)
@@ -49,16 +49,16 @@ def color_cell_latex(val):
     return "\cellcolor{yellow!50} " + str(val)
 
 
-def run_and_generate_history_df(gamma, phi, prices, consumptions, alg_list, with_mindet):
+def run_and_generate_history_df(gamma, phi, prices, demands, alg_list, with_mindet):
     algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(
-        gamma, phi, prices, consumptions, alg_list, with_mindet)
+        gamma, phi, prices, demands, alg_list, with_mindet)
 
     len_input = len(prices)  # length of the input sequence
     columns = list(range(len_input))
 
     df = pd.concat([pd.DataFrame(columns=columns),
                     pd.DataFrame([prices], columns=columns, index=["Price"]),
-                    pd.DataFrame([consumptions], columns=columns, index=["Demand"])])
+                    pd.DataFrame([demands], columns=columns, index=["Demand"])])
 
     for i in range(len(algs_purchases)):
         df = df.append(pd.DataFrame([map(str, list(algs_purchases[i]))], columns=columns, index=[f"$ x(A_{i}) $"]))
@@ -85,15 +85,15 @@ def run_and_generate_history_df(gamma, phi, prices, consumptions, alg_list, with
     return df
 
 
-def run_and_print_history(gamma, phi, prices, consumptions, alg_list, with_mindet):
-    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(gamma, phi, prices, consumptions, alg_list, with_mindet)
+def run_and_print_history(gamma, phi, prices, demands, alg_list, with_mindet):
+    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet)
 
     len_input = len(prices)  # length of the input sequence
 
     output_table = PrettyTable([""] + list(range(len_input)))
 
     output_table.add_row(["Price"] + list(prices))
-    output_table.add_row(["Demand"] + list(consumptions))
+    output_table.add_row(["Demand"] + list(demands))
 
     for i in range(len(alg_list)):
         output_table.add_row([f"x(ALG_{i})"] + list(algs_purchases[i]))
