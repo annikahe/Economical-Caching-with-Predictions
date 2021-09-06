@@ -6,8 +6,42 @@ import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 import pandas as pd
 
+""" Common Parameters:
+    :param gamma:
+    :param phi: float
+        Upper bound on the prices.
+    :param prices: List
+        List of incoming prices.
+    :param demands: List
+        List of incoming demands.
+"""
+
 
 def run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet):
+    """
+        Executes given algorithms on the complete input sequence.
+        Can run the algorithms independently from each other or as input for MIN^det.
+
+        :param gamma:
+        :param phi:
+        :param prices:
+        :param demands:
+        :param alg_list: list
+            List of algorithms for the Economical Caching Problem.
+        :param with_mindet: boolean
+            Decides whether to simulate the algorithms with or without MIN^det.
+            with_mindet = True: Generate an instance of MIN^det with the given algorithms as input.
+                                Run this algorithm on the given input sequence and generate the history.
+            with_mindet = False: Only run the given algorithms (independently from each other)
+                                and generate the history.
+        :return:
+            - numpy array of arrays: inner arrays contain the purchase amounts of all input algorithms
+                                     in the individual time steps.
+            - numpy array of arrays: inner arrays contain the costs the different input algorithms
+                                     accumulated until the individual time steps.
+            - numpy array of arrays: inner arrays contain the stock levels of the different input algorithms
+                                     in the individual time steps.
+        """
     algs_purchases = [[] for i in range(len(alg_list))]
     algs_acc_costs = [[] for i in range(len(alg_list))]
     algs_stocks = [[] for i in range(len(alg_list))]
@@ -41,11 +75,26 @@ def run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet)
 
 
 def remove_trailing_zeros(val):
+    """
+    Remove zeros after the decimal point from a float and output the result as a string.
+
+    :param val: float
+    :return: string
+    """
     val = str(val)
     return val.rstrip('0').rstrip('.') if '.' in val else val
 
 
 def color_cell_latex(val):
+    """
+    This function is aimed at coloring cells inside a latex table.
+    A given content of a cell is extended by the latex command to color a cell in yellow.
+
+    :param val: string or float
+        Content of the latex table cell.
+    :return: string
+        Assemblage of the latex command to color a cell in yellow and the cell content.
+    """
     return "\cellcolor{yellow!50} " + str(val)
 
 
