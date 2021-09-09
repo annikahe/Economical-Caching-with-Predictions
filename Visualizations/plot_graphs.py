@@ -30,4 +30,4 @@ pred_ftp = 4 * [0, 1]
 opt = FtP(0, 0, pred_opt)
 ftp = FtP(0, 0, pred_ftp)
 
-history.run_and_generate_history_df(gamma, phi, prices, demands, [opt, ftp], False)
+history.run_and_generate_history_df(phi, prices, demands, [opt, ftp], False, gamma)
