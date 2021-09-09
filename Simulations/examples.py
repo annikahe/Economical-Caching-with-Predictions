@@ -18,4 +18,4 @@ def run_constant_prices_and_demands(c, num_rounds, gamma, phi, num_algs):
     A0 = FtP(0, 0, pred_A0)
     A1 = FtP(0, 0, pred_A1)
 
-    history.run_and_print_history(gamma, phi, prices, demands, [A0, A1], True)
+    history.run_and_print_history_table(phi, prices, demands, [A0, A1], True, gamma)

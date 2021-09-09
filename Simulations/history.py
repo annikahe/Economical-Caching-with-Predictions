@@ -17,7 +17,7 @@ import pandas as pd
 """
 
 
-def run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet):
+def run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma=1):
     """
         Executes given algorithms on the complete input sequence.
         Can run the algorithms independently from each other or as input for MIN^det.
@@ -76,7 +76,7 @@ def run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet)
 
 def remove_trailing_zeros(val):
     """
-    Remove zeros after the decimal point from a float and output the result as a string.
+    Remove redundant trailing zeros after the decimal point from a float and output the result as a string.
 
     :param val: float
     :return: string
@@ -98,9 +98,19 @@ def color_cell_latex(val):
     return "\cellcolor{yellow!50} " + str(val)
 
 
-def run_and_generate_history_df(gamma, phi, prices, demands, alg_list, with_mindet):
-    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(
-        gamma, phi, prices, demands, alg_list, with_mindet)
+def run_and_generate_history_df(phi, prices, demands, alg_list, with_mindet, gamma=1):
+    """
+    Run the algorithms given in alg_list
+    :param gamma:
+    :param phi:
+    :param prices:
+    :param demands:
+    :param alg_list:
+    :param with_mindet:
+    :return:
+    """
+    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = \
+        run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma)
 
     len_input = len(prices)  # length of the input sequence
     columns = list(range(len_input))
@@ -129,13 +139,17 @@ def run_and_generate_history_df(gamma, phi, prices, demands, alg_list, with_mind
             elif int(df.at["Alg. currently exec. by $ \mindet $", i]) == 1:
                 df.at["$ x(A_1) $", i] = color_cell_latex(df.at["$ x(A_1) $", i])
 
-    print(df.to_latex(index=True, escape=False))
-
     return df
 
 
-def run_and_print_history(gamma, phi, prices, demands, alg_list, with_mindet):
-    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks = run_and_generate_history(gamma, phi, prices, demands, alg_list, with_mindet)
+def run_and_print_history_latex(phi, prices, demands, alg_list, with_mindet, gamma=1):
+    df = run_and_generate_history_df(phi, prices, demands, alg_list, with_mindet, gamma)
+    print(df.to_latex(index=True, escape=False))
+
+
+def run_and_print_history_table(phi, prices, demands, alg_list, with_mindet, gamma=1):
+    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks \
+        = run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma)
 
     len_input = len(prices)  # length of the input sequence
 
@@ -150,13 +164,11 @@ def run_and_print_history(gamma, phi, prices, demands, alg_list, with_mindet):
         output_table.add_row([f"stock(ALG_{i})"] + list(algs_stocks[i]))
 
     if with_mindet:
-        output_table.add_row([f"x(MIN^det)"] + list(mindet_purchases))
-        output_table.add_row([f"cost(MIN^det)"] + list(mindet_acc_costs))
+        output_table.add_row(["x(MIN^det)"] + list(mindet_purchases))
+        output_table.add_row(["cost(MIN^det)"] + list(mindet_acc_costs))
         output_table.add_row(["Current_Alg"] + list(mindet_current_algs))
         output_table.add_row(["stock(MIN^det)"] + list(mindet_stocks))
         output_table.add_row(["Ratio cost(MIN^det)/min(cost(A_i))"] + [mindet_acc_costs[i]/min(algs_acc_costs[0][i], algs_acc_costs[1][i]) for i in range(len(prices))])
-        epsilon = 1/100
-        output_table.add_row(["Lower bound correct?"] + [mindet_acc_costs[i] > (3 - epsilon) * min(algs_acc_costs[0][i], algs_acc_costs[1][i]) for i in range(len(prices))])
 
     print(output_table)
 

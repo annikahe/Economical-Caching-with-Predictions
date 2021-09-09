@@ -20,4 +20,4 @@ pred_A1 = [0, 1, 0, 1, 1] + num_repetitions * [1, 0, 1, 0, 0, 0, 1, 0, 1, 1]
 Ex3A0 = FtP(0, 0, pred_A0)
 Ex3A1 = FtP(0, 0, pred_A1)
 
-history.run_and_print_history(gamma, phi, prices, demands, [Ex3A0, Ex3A1], True)
+history.run_and_print_history_latex(phi, prices, demands, [Ex3A0, Ex3A1], True, gamma)
