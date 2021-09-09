@@ -169,54 +169,6 @@ class AlgorithmPred(Algorithm):
         self.prediction = self.remaining_predictions.pop()
 
 
-class AlgorithmTurn(Algorithm):
-    """
-    This type of very artificial example algorithms also get to know whether they are currently followed by MIN^det.
-
-    Attributes
-    ----------
-    turn : int (boolean)
-        A boolean variable that tells the algorithms whether it is followed by MIN^det.
-        self.turn = 0 => Alg currently not in use by MIN^det
-        self.turn = 1 => Alg currently in use by MIN^det
-
-    Methods
-    -------
-    update_turn(turn)
-        Updates the value of self.turn based on the input parameter turn.
-    """
-    def __init__(self, stock, cost):
-        super().__init__(stock, cost)
-        self.turn = False
-
-    def update_turn(self, turn):
-        self.turn = turn
-
-
-class AlgorithmTurnPred(AlgorithmPred):
-    """
-    Class of algorithms with predictions that additionally get to know whether they are observed by MIN^det.
-
-    Attributes
-    ----------
-    turn : int (boolean)
-        A boolean variable that tells the algorithms whether it is followed by MIN^det.
-        self.turn = 0 => Alg currently not in use by MIN^det
-        self.turn = 1 => Alg currently in use by MIN^det
-
-    Methods
-    -------
-    update_turn(turn)
-        Updates the value of self.turn based on the input parameter turn.
-    """
-    def __init__(self, stock, cost, predictions):
-        super().__init__(stock, cost, predictions)
-        self.turn = False
-
-    def update_turn(self, turn):
-        self.turn = turn
-
-
 class AlgorithmRandom(Algorithm):
     """
     This is the class of online algorithms for the EC problem with uniformly random purchase amounts.
