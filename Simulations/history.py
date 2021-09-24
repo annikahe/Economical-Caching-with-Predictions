@@ -16,6 +16,7 @@ import pandas as pd
         List of incoming demands.
 """
 
+color_list = ["red", "blue", "green", "purple", "magenta", "grey"]
 
 def run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma=1):
     """
@@ -53,6 +54,7 @@ def run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma=
     mindet_current_algs = []
     mindet_acc_costs = []
     mindet_stocks = []
+    mindet_cycles = []
 
     for i in range(len(prices)):
         price = prices[i]
@@ -70,8 +72,9 @@ def run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma=
             mindet_purchases.append(mindet.x)
             mindet_acc_costs.append(mindet.cost)
             mindet_stocks.append(mindet.stock)
+            mindet_cycles.append(mindet.cycle)
 
-    return np.array(algs_purchases), np.array(algs_acc_costs), np.array(algs_stocks), mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks
+    return np.array(algs_purchases), np.array(algs_acc_costs), np.array(algs_stocks), mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles
 
 
 def remove_trailing_zeros(val):
@@ -173,21 +176,87 @@ def run_and_print_history_table(phi, prices, demands, alg_list, with_mindet, gam
     print(output_table)
 
 
-def plot_history(algs_purchases, mindet_purchases, mindet_current_algs):
-    # TODO
-    for i in range(len(algs_purchases)):
-        plt.plot(algs_purchases[i], '-o', color="k")
-    #plt.plot(mindet_purchases, 'o', color="red")
+def plot_history(algs_quantity, with_color=True):
+    """
+    Plots the development of a certain quantity of the given algorithms.
+    :param algs_quantity: List
+        A list with the values of some quantity of the online algorithms (e.g. the accumulated cost in every step)..
+    :param with_color: Boolean
+        Determines whether to plot the quantities in different colors or not.
+    """
+    num_algs = len(algs_quantity)
+    len_input = len(algs_quantity[0])
 
-    ends_chunks = get_ends_of_chunks(mindet_current_algs)
+    if with_color:
+        for i in range(num_algs):
+            plt.plot(algs_quantity[i], '-o', color=color_list[i])
+            plt.annotate(f"$A_{i}$", (len_input - .2, algs_quantity[i][-1]), color=color_list[i])
+    else:
+        for i in range(num_algs):
+            plt.plot(algs_quantity[i], '-o', color="k")
+            plt.annotate(f"$A_{i}$", (len_input - .2, algs_quantity[i][-1]), color=color_list[i])
+
+    plt.xlabel("Time step $ t $")
+    plt.ylabel("Accumulated Costs $ cost_t $")
+
+    plt.xlim([0, len_input + 1])
+
+
+def plot_history_mindet_sections(algs_quantity, mindet_purchases, mindet_current_algs, mindet_cycles, phi, gamma, name):
+    num_algs = len(algs_quantity)
+
+    plot_history(algs_quantity, with_color=False)
+
+    ends_chunks = get_ends_of_chunks(mindet_cycles)
+
     start = 0
     for l in range(len(ends_chunks)):
         end = ends_chunks[l]
-        current_alg = mindet_current_algs[start]
-        print(range(start, end))
-        plt.plot(range(start, end), algs_purchases[current_alg][start:end], '-o', color="red")
-        start = ends_chunks[l] - 1
-        print(l)
+        current_alg = mindet_current_algs[end]
+        plt.plot(range(start, end+1), algs_quantity[current_alg][start:end + 1], '-o', color=color_list[current_alg], label=f"$ A_{current_alg} $")
+        start = end
+
+    # dotted horizontal lines
+    # for l in range(max(mindet_cycles)):
+    #     plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), linestyle='dotted', color=color_list[l % num_algs], linewidth=0.5)
+
+    # solid horizontal lines
+    # for l in mindet_cycles:
+    #     plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), color=color_list[l % num_algs], linewidth=0.8)
+
+    plt.xticks(ends_chunks)
+    plt.yticks([(l + 1) * gamma * phi for l in mindet_cycles])
+
+    # history
+    lines = []
+    for current_alg in range(num_algs):
+        line, = plt.plot(range(1), range(1), '-o', color=color_list[current_alg], label="MIN$^{det}$ follows" + f"$ A_{current_alg} $")
+        lines.append(line,)
+    labels = [f"follow $ A_{current_alg} $" for current_alg in range(num_algs)]
+    plt.legend(lines, labels)
+
+
+def run_and_plot_history(phi, prices, demands, alg_list, with_mindet, gamma, name):
+    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles = \
+        run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma)
+
+    print(algs_acc_costs)
+
+    plot_history(algs_acc_costs)
+
+    plt.savefig(f"history_plots/history_{name}_orig_without_mindet.png")
+    plt.show()
+
+
+def run_and_plot_history_mindet_sections(phi, prices, demands, alg_list, with_mindet, gamma, name):
+    algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles = \
+        run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma)
+
+    print(algs_acc_costs)
+
+    plot_history_mindet_sections(algs_acc_costs, mindet_purchases, mindet_current_algs, mindet_cycles, phi, gamma, name)
+
+    plt.savefig(f"history_plots/history_{name}_mindet_sections_without_hlines.png")
     plt.show()
 
 
@@ -243,6 +312,6 @@ def get_ends_of_chunks(index_list):
         if index_list[i] != index_list[i - 1]:
             ends_of_chunks.append(i-1)
 
-    ends_of_chunks.append(i)
+    ends_of_chunks.append(len(index_list)-1)
 
     return ends_of_chunks
