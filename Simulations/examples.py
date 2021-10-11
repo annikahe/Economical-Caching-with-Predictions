@@ -1,5 +1,4 @@
 from algorithms import *
-from instances import *
 import offline as off
 import numpy as np
 import matplotlib.pyplot as plt

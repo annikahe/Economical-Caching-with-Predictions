@@ -18,6 +18,7 @@ import pandas as pd
 
 color_list = ["red", "blue", "green", "purple", "magenta", "grey"]
 
+
 def run_and_generate_history(phi, prices, demands, alg_list, with_mindet, gamma=1):
     """
         Executes given algorithms on the complete input sequence.
