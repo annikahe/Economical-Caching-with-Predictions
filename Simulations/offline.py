@@ -1,78 +1,67 @@
+from operator import itemgetter
+from decimal import *
 import numpy as np
-import matplotlib.pyplot as plt
 
 
-def h(i, x, prices, demands, phi):
-    """
-    We are looking for a solution that covers the requests up to time step i and has a full stock at the end of step i.
-    This function describes at what prices the stock, which is present at the end of time step i, was purchased.
-    The term 1 - h(i, x, prices, demands, phi) indicates the fraction of the stock
-    that was bought at a price of x or better.
+def take_from_stock(purchases, remaining_demand, current_step, current_price):
+    purchases.sort(key=itemgetter(1))
 
-    :param i: integer
-        i in {0, ..., T}
-    :param x: float
-        some price x in [1, phi]
-    :param prices: list
-        complete list of all input prices
-    :param demands: list
-        complete list of all input demands
-    :param phi: float
-        upper bound on the prices, phi >= 1
-    :return: float
-        evaluation of the function h_i at x.
-    """
-    if i == 0:
-        if x == phi:
-            return 0
+    for p in purchases:
+        if p[1] < current_price and remaining_demand > 0:
+            if p[0] < current_step:
+                purchase_amount = Decimal(min(p[2], remaining_demand))
+                remaining_demand -= purchase_amount  # decrease remaining demand
+                p[3] += purchase_amount  # increase stock level
+                p[2] -= purchase_amount  # decrease remaining stock level
+
+                for pp in purchases:
+                    if pp[0] < p[0] or p[0] < pp[0] < current_step:
+                        pp[2] -= min(purchase_amount, pp[2])  # decrease remaining stock levels of earlier and later steps up to current time step
+                    if p[0] < pp[0] < current_step: # increase stock levels of later time steps up to current time step
+                        pp[3] += min(purchase_amount, 1 - pp[3])
+                    elif pp[0] == current_step:  # increase level of current stock
+                        pp[2] += min(purchase_amount, 1 - pp[2])
         else:
-            return 1
-    else:
-        if x <= prices[i-1]:
-            return np.min([h(i - 1, x, prices, demands, phi) + demands[i - 1], 1])
-        else:
-            return 0
+            break
+
+    purchases.sort(key=itemgetter(0))
 
 
-def c_integral(i, prices, demands, phi):
-    """
-    Computes the cost that the optimal offline algorithm incurs to cover the demand v_i in time step i.
+def opt_decisions(prices, demands):
+    # data structure: list of tuples
+    # (time step, price, remaining space in stock, stock level)
 
-    :param i: integer
-        time step, i in {0, ..., T}
-    :param prices: list
-        complete list of all input prices
-    :param demands: list
-        complete list of all input demands
-    :param phi: float
-        upper bound on the prices, phi >= 1
-    :return: float
-        cost that OPT incurs to cover v_i
-    """
-    sorted_prices = [0] + sorted(prices)
-    c_int = 0
-    for j in range(i):
-        y = np.max([h(i - 1, sorted_prices[j+1], prices, demands, phi) + demands[i - 1] - 1, 0])
-        c_int += (sorted_prices[j+1] - sorted_prices[j]) * y
-    return c_int
+    getcontext().prec = 16
+
+    purchase_overview = [list(a) for a in zip(map(Decimal, range(len(prices))), prices, len(prices) * [1], len(prices) * [0])]
+
+    old_remaining_stock = Decimal(1)
+    old_stock = Decimal(0)
+
+    for t in range(len(prices)):
+        remaining_demand = demands[t]
+        purchase_overview[t][2] = old_remaining_stock
+        purchase_overview[t][3] = old_stock
+        take_from_stock(purchase_overview, Decimal(remaining_demand), t, Decimal(prices[t]))
+        old_remaining_stock = purchase_overview[t][2]
+        old_stock = purchase_overview[t][3]
+
+    opt_stock_levels = [float(p[3]) for p in purchase_overview]
+
+    return opt_stock_levels
 
 
-def cost_opt(prices, demands, phi):
-    """
-    Computes the total cost of the optimal offline algorithm for the Economical Caching Problem.
+def compute_error(list1, list2):
+    error = 0
+    for i in range(len(list1)):
+        error += np.abs(list1[i] - list2[i])
 
-    :param prices: list
-        Complete list of prices (input)
-    :param demands: list
-        Complete list of demands (input)
-    :param phi: float
-        Upper bound on the prices.
-    :return: float
-        Total cost of OPT incurred during the whole input sequence.
-    """
-    c_sum = 0
-    for i in range(len(prices)):
-        c_sum += c_integral(i + 1, prices, demands, phi)
-    return c_sum
+    return error
+
+
+# opt_decisions([2,1,3,4,5,1], [0,0,0.2,1.6,0.4,0.2])
+
+# opt_decisions([5,4,3,2,1,1,2,3,4,5], [0.1, 0.1, 0.2, 0, 0, 0,0.2, 0.1, 0.5, 0.5])
+
 
 
