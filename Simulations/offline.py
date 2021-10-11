@@ -1,6 +1,12 @@
+import history
+from algorithms import *
+
 from operator import itemgetter
 from decimal import *
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from numpy.random import default_rng
 
 
 def take_from_stock(purchases, remaining_demand, current_step, current_price):
@@ -56,7 +62,76 @@ def compute_error(list1, list2):
     for i in range(len(list1)):
         error += np.abs(list1[i] - list2[i])
 
-    return error
+    return error / len(list1)
+
+
+def moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
+
+def plot_ratios(errors, ratios, window_size):
+    df = pd.DataFrame({"Errors" : errors, "Ratios" : ratios})
+    df = df.sort_values("Errors")
+    e = df['Errors'].values.tolist()
+    r = df['Ratios'].values.tolist()
+    x = moving_average(e, window_size)
+    y = moving_average(r, window_size)
+    # print(moving_average(x, 200))
+    # print(moving_average(y, 200))
+
+    plt.plot(x, y)
+    plt.show()
+
+
+def quality_of_FtP(prices, demands, deviations, num_repetitions):
+
+    pred_opt_off = opt_decisions(prices, demands)
+
+    phi = np.max(prices)
+
+    eta1 = []
+    eta2 = []
+    ratios = []
+
+    for i in range(num_repetitions):
+        rng = default_rng(i)
+
+        pred_opt_off_copy = pred_opt_off.copy()
+        opt = FtP(0, 0, pred_opt_off_copy)
+
+        alg_list = [opt]
+
+        for d in deviations:
+            pred_opt_off_distorted = [np.clip(x + rng.normal(d), 0, 1) for x in pred_opt_off_copy]
+            distorted = FtP(0, 0, pred_opt_off_distorted)
+            alg_list.append(distorted)
+
+        algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles \
+            = history.run_and_generate_history(phi, prices, demands, alg_list,
+                                               False)
+        #
+        # print(algs_acc_costs[0][-1])
+
+        for j in range(1, len(alg_list)):
+            e1 = compute_error(algs_stocks[0], algs_stocks[j])
+            eta1.append(e1)
+            print(e1)
+
+            e2 = compute_error(algs_purchases[0], algs_purchases[j])
+            eta2.append(e2)
+            # print(e2)
+
+            ratio = algs_acc_costs[1][-1] / algs_acc_costs[0][-1]
+            ratios.append(ratio)
+            # print(ratio)
+
+    print(eta1)
+    print(eta2)
+    print(ratios)
+
+    return eta1, eta2, ratios
 
 
 # opt_decisions([2,1,3,4,5,1], [0,0,0.2,1.6,0.4,0.2])
