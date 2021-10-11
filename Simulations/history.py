@@ -1,5 +1,4 @@
 from Simulations.algorithms import *
-from Simulations.instances import *
 import Simulations.offline as off
 import numpy as np
 import matplotlib.pyplot as plt
