@@ -61,7 +61,9 @@ class Algorithm:
 
     def update_stock(self, demand):
         if self.x + self.stock < demand:
-            print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {demand}")
+            print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {demand}. Rounding up.")
+            self.x = demand - self.stock
+            self.stock = 0
         elif self.x < demand:
             self.stock -= (demand - self.x)
         else:
