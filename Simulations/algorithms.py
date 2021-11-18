@@ -166,7 +166,7 @@ class AlgorithmPred(Algorithm):
     def __init__(self, stock, cost, predictions):
         super().__init__(stock, cost)
         self.prediction = 0
-        self.remaining_predictions = predictions
+        self.remaining_predictions = predictions.copy()
         self.remaining_predictions.reverse()  # reverse the list to be able to pop first element from list
 
     def update_prediction(self):
