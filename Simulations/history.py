@@ -217,12 +217,12 @@ def plot_history_mindet_sections(algs_quantity, mindet_purchases, mindet_current
         start = end
 
     # dotted horizontal lines
-    for l in range(max(mindet_cycles)):
-        plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), linestyle='dotted', color=color_list[l % num_algs], linewidth=0.5)
+    # for l in range(max(mindet_cycles)):
+    #     plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), linestyle='dotted', color=color_list[l % num_algs], linewidth=0.5)
 
     # solid horizontal lines
-    for l in mindet_cycles:
-        plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), color=color_list[l % num_algs], linewidth=0.8)
+    # for l in mindet_cycles:
+    #     plt.hlines((l + 1) * gamma * phi, 0, len(mindet_current_algs), color=color_list[l % num_algs], linewidth=0.8)
 
     plt.xticks(ends_chunks)
     plt.yticks([(l + 1) * gamma * phi for l in mindet_cycles])
