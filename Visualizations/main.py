@@ -1,10 +1,8 @@
 import cost_barplots_from_df as barplots
-import Simulations.history as history
-from Simulations.instances import *
 
 # Basic Settings
 # Set the name of the CSV to use:
-input = 'worst'
+input = 'upper-bound-worst'
 
 phi = 2
 m = 3
