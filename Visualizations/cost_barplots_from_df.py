@@ -170,12 +170,12 @@ def plot_cost_bars(phi, m, n_cycles, input, with_title, with_min_det):
     plt.ylabel(r"Accumulated costs in units of $\gamma\varphi$")
     if with_min_det:
         if with_title:
-            plt.savefig('Plots/' + input + '_with_min_det_' + 'with_title_' + str(m) + 'x' + str(n_cycles) + '.png')
+            plt.savefig('Plots/' + input + '_with_min_det_' + 'with_title_' + str(m) + 'x' + str(n_cycles) + '.pdf')
         else:
-            plt.savefig('Plots/' + input + '_with_min_det_' + str(m) + 'x' + str(n_cycles) + '.png')
+            plt.savefig('Plots/' + input + '_with_min_det_' + str(m) + 'x' + str(n_cycles) + '.pdf')
     else:
         if with_title:
-            plt.savefig('Plots/' + input + '_with_title_' + str(m) + 'x' + str(n_cycles) + '.png')
+            plt.savefig('Plots/' + input + '_with_title_' + str(m) + 'x' + str(n_cycles) + '.pdf')
         else:
-            plt.savefig('Plots/' + input + '_' + str(m) + 'x' + str(n_cycles) + '.png')
+            plt.savefig('Plots/' + input + '_' + str(m) + 'x' + str(n_cycles) + '.pdf')
     plt.show()
