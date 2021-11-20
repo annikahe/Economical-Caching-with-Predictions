@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 import pandas as pd
+import predictions as pred
+import algorithms as algo
 
 """ Common Parameters:
     :param gamma:
@@ -244,7 +246,7 @@ def run_and_plot_history(phi, prices, demands, alg_list, with_mindet, gamma, nam
 
     plot_history(algs_acc_costs)
 
-    plt.savefig(f"history_plots/history_{name}_orig_without_mindet.png")
+    plt.savefig(f"history_plots/history_{name}_orig_without_mindet.pdf")
     plt.show()
 
 
@@ -256,7 +258,7 @@ def run_and_plot_history_mindet_sections(phi, prices, demands, alg_list, with_mi
 
     plot_history_mindet_sections(algs_acc_costs, mindet_purchases, mindet_current_algs, mindet_cycles, phi, gamma, name)
 
-    plt.savefig(f"history_plots/history_{name}_mindet_sections_without_hlines.png")
+    plt.savefig(f"history_plots/history_{name}_mindet_sections_without_hlines.pdf")
     plt.show()
 
 
@@ -315,3 +317,106 @@ def get_ends_of_chunks(index_list):
     ends_of_chunks.append(len(index_list)-1)
 
     return ends_of_chunks
+
+
+class History:
+    def __init__(self, gamma, phi, prices, demands, alg):
+        self.gamma = gamma
+        self.phi = phi
+        self.prices = prices
+        self.demands = demands
+        self.alg = alg
+        self.purchases = []
+        self.acc_costs = []
+        self.stocks = []
+        opt_pred = pred.opt_off(prices, demands)
+        self.opt_off = algo.FtP(0, 0, opt_pred)
+
+    def update_purchases(self):
+        self.purchases.append(self.alg.x)
+
+    def update_acc_costs(self):
+        self.acc_costs.append(self.alg.cost)
+
+    def update_stocks(self):
+        self.stocks.append(self.alg.stock)
+
+    # def update_stock_errors(self):
+    #     self.stock_errors.append(np.abs(self.opt_off.stock - self.alg.stock))
+
+    def run_step(self, gamma, phi, price, demand):
+        self.alg.run(gamma, phi, price, demand)
+        self.update_purchases()
+        self.update_acc_costs()
+        self.update_stocks()
+
+    def run_full(self):
+        for i in range(len(self.prices)):
+            self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
+            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+            # self.update_stock_errors(self.opt_off)
+
+    def get_cost(self):
+        return self.alg.cost
+
+    def get_comp_ratio(self):
+        return self.alg.cost / self.opt_off.cost
+
+
+class HistoryPred(History):
+    def __init__(self, gamma, phi, prices, demands, alg, predictions):
+        super().__init__(gamma, phi, prices, demands, alg)
+        self.predictions = predictions
+        self.stock_errors = []
+
+    def update_stock_errors(self, prediction):
+        self.stock_errors.append(np.abs(self.opt_off.stock - prediction))
+
+    def run_full(self):
+        for i in range(len(self.prices)):
+            self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
+            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+            self.update_stock_errors(self.predictions[i])
+
+    def get_total_error(self):
+        return np.sum(self.stock_errors)
+
+    def get_normalized_error(self):
+        return self.get_total_error() / self.opt_off.cost
+
+    def get_results_str(self):
+        return f"cost = {self.get_cost()}, off cost = {self.opt_off.cost}, competitive ratio = {self.get_comp_ratio()},\
+                 eta = {self.get_total_error()}"
+
+
+class MinDetHistory(HistoryPred):
+    def __init__(self, gamma, phi, prices, demands, alg_list):
+        self.gamma = gamma
+        self.phi = phi
+        self.prices = prices
+        self.demands = demands
+        self.algs_histories = [History(gamma, phi, prices, demands, alg) for alg in alg_list]
+        self.mindet = History(gamma, phi, prices, demands, MinDet(0, 0, [a.alg for a in self.algs_histories]))
+        self.mindet_current_algs = []
+        self.mindet_cycles = []
+
+    def run_step(self, gamma, phi, price, demand):
+        self.mindet.alg.run(gamma, phi, price, demand)
+        self.mindet_current_algs.append(self.mindet.alg.current_alg)
+
+        for alg in self.algs_histories:
+
+            alg.update_purchases()
+            alg.update_acc_costs()
+            alg.update_stocks()
+
+        self.mindet.update_purchases()
+        self.mindet.update_acc_costs()
+        self.mindet.update_stocks()
+        self.mindet_cycles.append(self.mindet.alg.cycle)
+
+    def run_full(self):
+        for i in range(len(self.prices)):
+            self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
+            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+

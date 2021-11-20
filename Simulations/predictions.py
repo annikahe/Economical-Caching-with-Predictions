@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.random import default_rng
+import offline as off
 
 
 # Generate predictions independently from the instance and the optimal solution
@@ -20,6 +21,12 @@ def predictions_0(length):
 
 def predictions_1(length):
     return [1] * len(length)
+
+
+# generate optimal predictions
+
+def opt_off(prices, demands):
+    return off.opt_stock_levels(prices, demands)
 
 
 # Generate predictions based on the optimal offline solution
