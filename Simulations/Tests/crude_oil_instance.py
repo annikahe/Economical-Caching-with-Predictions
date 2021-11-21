@@ -1,13 +1,13 @@
-from algorithms import *
-from algorithms import *
-import offline as off
+from Simulations.algorithms import *
+import Simulations.offline as off
+import Simulations.predictions as pred
+from Simulations.history import *
+import Simulations.pickle_helpers as ph
+
 import numpy as np
-import matplotlib.pyplot as plt
-import history
-import examples as ex
 import pandas as pd
-from statistics import mean
-from numpy.random import default_rng
+
+
 
 # Prices
 # crude oil prices_daily in dollars (02.01.1986 - 09.07.2018)
@@ -34,7 +34,7 @@ prices_quarterly_normalized = prices_quarterly / min_price
 
 # Demands
 # crude oil demand (1994 Q1 - 2019 Q3)
-demands_supply_df = pd.read_csv(r'../Data/Supply_Demand_Oil.csv')
+demands_supply_df = pd.read_csv(r'../../Data/Supply_Demand_Oil.csv')
 demands_supply_df = demands_supply_df[demands_supply_df['Quarter'] <= f'2018 Q4']
 
 demands = demands_supply_df['Oced_D_Europe'].values.tolist()
@@ -47,27 +47,29 @@ demands = demands_normalized
 
 phi = np.max(prices)
 
-eta1, eta2, ratios = off.quality_of_FtP(prices[:10],
-                                        demands[:10],
-                                        [0, 0.000000001, 0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10, 100],
-                                        20)
+# eta1, eta2, ratios = off.quality_of_FtP(prices[:10],
+#                                         demands[:10],
+#                                         [0, 0.000000001, 0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10, 100],
+#                                         20)
+#
+# print(f"Max price = {prices[:10].max()}")
+# print(f"Min price = {prices[:10].min()}")
+# print(f"Max demand = {demands[:10].max()}")
+# print(f"Min demand = {demands[:10].min()}")
+#
+# # optimal solution
+# pred_opt_off = off.opt_stock_levels(prices[:10], demands[:10])
+# opt = FtP(0, 0, pred_opt_off)
+# for i in range(10):
+#     opt.run(1, phi, prices[i], demands[i])
 
-print(f"Max price = {prices[:10].max()}")
-print(f"Min price = {prices[:10].min()}")
-print(f"Max demand = {demands[:10].max()}")
-print(f"Min demand = {demands[:10].min()}")
+pred_opt_off = pred.opt_off(prices, demands)
+opt_off = History(1, phi, prices, demands, FtP(0, 0, pred_opt_off))
+opt_off.run_full()
 
-# optimal solution
-pred_opt_off = off.opt_stock_levels(prices[:10], demands[:10])
-opt = FtP(0, 0, pred_opt_off)
-for i in range(10):
-    opt.run(1, phi, prices[i], demands[i])
+rpa = RPA(0, 0)
+ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
+mindet = MinDetHistory(1, phi, prices, demands, [rpa, ftp])
+mindet.run_full()
 
-off.plot_ratios(eta1, ratios, 1, 1)
-eta_norm = np.linspace(0, 0.1, 100)
-y_opt = [off.comp_ratio_FtP_stock_error(phi, opt.cost, x) for x in eta_norm]
-plt.plot(eta_norm, y_opt)
-plt.show()
-
-off.plot_ratios(eta2, ratios, 1, 1)
-plt.show()
+ph.save_objects([mindet, opt_off], 'Tests/Instances/crude_oil.pkl')
