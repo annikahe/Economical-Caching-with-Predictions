@@ -1,11 +1,13 @@
 from Simulations.algorithms import *
-import Simulations.offline as off
+# import Simulations.offline as off
 import numpy as np
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 import pandas as pd
-import predictions as pred
-import algorithms as algo
+import Simulations.predictions as pred
+
+import numpy as np
+
 
 """ Common Parameters:
     :param gamma:
@@ -329,8 +331,8 @@ class History:
         self.purchases = []
         self.acc_costs = []
         self.stocks = []
-        opt_pred = pred.opt_off(prices, demands)
-        self.opt_off = algo.FtP(0, 0, opt_pred)
+        # opt_pred = pred.opt_off(prices, demands)
+        # self.opt_off = FtP(0, 0, opt_pred)
 
     def update_purchases(self):
         self.purchases.append(self.alg.x)
@@ -353,14 +355,34 @@ class History:
     def run_full(self):
         for i in range(len(self.prices)):
             self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
-            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+            # self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
             # self.update_stock_errors(self.opt_off)
 
     def get_cost(self):
         return self.alg.cost
 
-    def get_comp_ratio(self):
-        return self.alg.cost / self.opt_off.cost
+    def get_comp_ratio(self, opt_off):
+        return self.alg.cost / opt_off.alg.cost
+
+    def get_stock_error(self, opt_off):
+        if isinstance(self.alg, AlgorithmPred):
+            return np.sum(np.abs(self.alg.predictions[i] - opt_off.stocks[i]) for i in range(len(opt_off.stocks)))
+        else:
+            print("Algorithm does not use predictions.")
+            return 0
+
+    def get_normalized_stock_error(self, opt_off):
+        return self.get_stock_error(opt_off) / opt_off.cost
+
+    def get_purchase_error(self, opt_off):
+        if isinstance(self.alg, AlgorithmPred):
+            return np.sum(np.abs(self.purchases[i] - opt_off.purchases[i]) for i in range(len(opt_off.purchases)))
+        else:
+            print("Algorithm is not an algorithm using predictions.")
+            return 0
+
+    def get_normalized_purchase_error(self, opt_off):
+        return self.get_purchase_error(opt_off) / opt_off.cost
 
     def generate_history_df(self):
 
@@ -383,7 +405,7 @@ class History:
         df = self.generate_history_df()
         print(df.to_latex(index=True, escape=False))
 
-    def run_and_print_history_table(self):
+    def print_history_table(self):
 
         len_input = len(self.prices)  # length of the input sequence
 
@@ -410,33 +432,33 @@ class History:
         plt.xlim([0, len_input + 1])
 
 
-class HistoryPred(History):
-    def __init__(self, gamma, phi, prices, demands, alg, predictions):
-        super().__init__(gamma, phi, prices, demands, alg)
-        self.predictions = predictions
-        self.stock_errors = []
+# class HistoryPred(History):
+#     def __init__(self, gamma, phi, prices, demands, alg, predictions):
+#         super().__init__(gamma, phi, prices, demands, alg)
+#         self.predictions = predictions
+#         self.stock_errors = []
+#
+#     def update_stock_errors(self, prediction):
+#         self.stock_errors.append(np.abs(self.opt_off.stock - prediction))
+#
+#     def run_full(self):
+#         for i in range(len(self.prices)):
+#             self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
+#             self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+#             self.update_stock_errors(self.predictions[i])
+#
+#     def get_total_error(self):
+#         return np.sum(self.stock_errors)
+#
+#     def get_normalized_error(self):
+#         return self.get_total_error() / self.opt_off.cost
+#
+#     def get_results_str(self):
+#         return f"cost = {self.get_cost()}, off cost = {self.opt_off.cost}, competitive ratio = {self.get_comp_ratio()},\
+#                  eta = {self.get_total_error()}"
 
-    def update_stock_errors(self, prediction):
-        self.stock_errors.append(np.abs(self.opt_off.stock - prediction))
 
-    def run_full(self):
-        for i in range(len(self.prices)):
-            self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
-            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
-            self.update_stock_errors(self.predictions[i])
-
-    def get_total_error(self):
-        return np.sum(self.stock_errors)
-
-    def get_normalized_error(self):
-        return self.get_total_error() / self.opt_off.cost
-
-    def get_results_str(self):
-        return f"cost = {self.get_cost()}, off cost = {self.opt_off.cost}, competitive ratio = {self.get_comp_ratio()},\
-                 eta = {self.get_total_error()}"
-
-
-class MinDetHistory(HistoryPred):
+class MinDetHistory():
     def __init__(self, gamma, phi, prices, demands, alg_list):
         self.gamma = gamma
         self.phi = phi
@@ -491,7 +513,7 @@ class MinDetHistory(HistoryPred):
 
         return df
 
-    def run_and_print_history_table(self):
+    def print_history_table(self):
 
         len_input = len(self.prices)  # length of the input sequence
 
@@ -567,4 +589,11 @@ class MinDetHistory(HistoryPred):
         labels = [f"follow $ A_{current_alg} $" for current_alg in range(num_algs)]
         plt.legend(lines, labels)
 
+
+# class Comparison:
+#     def __init__(self, alg0, alg1):
+#         self.alg0 = alg0
+#         self.alg1 = alg1
+#
+#     def compute_error
 

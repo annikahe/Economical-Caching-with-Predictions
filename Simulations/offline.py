@@ -1,6 +1,5 @@
-import history
-from algorithms import *
-import instances as inst
+from Simulations.algorithms import *
+import Simulations.instances as inst
 
 from operator import itemgetter
 from decimal import *
@@ -96,8 +95,8 @@ def moving_average(a, window_size=3) :
     return ret[window_size - 1:] / window_size
 
 
-def plot_ratios(errors, ratios, window_size, num_repetitions=1):
-    df = pd.DataFrame({"Errors" : errors, "Ratios" : ratios})
+def get_error_and_ratios(errors, ratios, window_size, num_repetitions=1):
+    df = pd.DataFrame({"Errors": errors, "Ratios": ratios})
     df = df.sort_values("Errors")
     print(len(df))
     df = df.drop_duplicates()
@@ -110,76 +109,76 @@ def plot_ratios(errors, ratios, window_size, num_repetitions=1):
     # print(moving_average(x, 200))
     # print(moving_average(y, 200))
 
-    plt.plot(e, r)
+    return e, r
 
 
-def create_predictions(method = "normal deviation", input_length = 0, deviation = 0,  rng = default_rng(), pred = []):
-    if method == "normal deviation":  # normal deviation from opt
+def create_predictions(method="normal", input_length=0, deviation=0,  rng=default_rng(), pred=[]):
+    if method == "normal":  # normal deviation from opt
         return [np.clip(x + rng.normal(0, deviation), 0, 1) for x in pred]
-    elif method == "uniform random":  # place predictions uniform in [0,1]
+    elif method == "uniform":  # place predictions uniform in [0,1]
         return [rng.uniform() for x in range(input_length)]
-    elif method == "all 1":
+    elif method == "1":
         return input_length * [1]
-    elif method == "all 0":
+    elif method == "0":
         return input_length * [0]
 
 
-def quality_of_FtP(prices, demands, deviations, num_repetitions):
-    pred_opt_off = opt_stock_levels(prices, demands)
-    phi = np.max(prices)
-    input_length = len(prices)
-
-    eta1 = []
-    eta2 = []
-    ratios = []
-
-    for i in range(num_repetitions):
-        rng = default_rng(i)
-
-        pred_opt_off_copy = pred_opt_off.copy()
-        opt = FtP(0, 0, pred_opt_off_copy)
-
-        alg_list = [opt]
-
-        for d in deviations:
-            #pred_opt_off_distorted = [np.clip(x + rng.normal(0, d), 0, 1) for x in pred_opt_off_copy]
-            pred_opt_off_distorted = create_predictions("normal deviation", input_length, d, rng, pred_opt_off_copy)
-            distorted = FtP(0, 0, pred_opt_off_distorted)
-            alg_list.append(distorted)
-
-        pred_random = create_predictions("uniform random", input_length, rng)
-        distorted = FtP(0, 0, pred_random)
-        alg_list.append(distorted)
-
-        # all 0 seems to be very good
-        pred_0 = create_predictions("all 0", input_length)
-        distorted = FtP(0, 0, pred_0)
-        alg_list.append(distorted)
-
-        # all 1 seems to be not as good as all 0
-        pred_1 = create_predictions("all 1", input_length)
-        distorted = FtP(0, 0, pred_1)
-        alg_list.append(distorted)
-
-        algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles \
-            = history.run_and_generate_history(phi, prices, demands, alg_list,
-                                               False)
-        #
-        # print(algs_acc_costs[0][-1])
-
-        for j in range(1, len(alg_list)):
-            e1 = compute_error(algs_stocks[0], algs_stocks[j])
-            e1 /= algs_acc_costs[0][-1]
-            eta1.append(e1)
-
-            e2 = compute_error(algs_purchases[0], algs_purchases[j])
-            e2 /= algs_acc_costs[0][-1]
-            eta2.append(e2)
-
-            ratio = algs_acc_costs[j][-1] / algs_acc_costs[0][-1]
-            ratios.append(ratio)
-
-    return eta1, eta2, ratios
+# def quality_of_FtP(prices, demands, deviations, num_repetitions):
+#     pred_opt_off = opt_stock_levels(prices, demands)
+#     phi = np.max(prices)
+#     input_length = len(prices)
+#
+#     eta1 = []
+#     eta2 = []
+#     ratios = []
+#
+#     for i in range(num_repetitions):
+#         rng = default_rng(i)
+#
+#         pred_opt_off_copy = pred_opt_off.copy()
+#         opt = FtP(0, 0, pred_opt_off_copy)
+#
+#         alg_list = [opt]
+#
+#         for d in deviations:
+#             #pred_opt_off_distorted = [np.clip(x + rng.normal(0, d), 0, 1) for x in pred_opt_off_copy]
+#             pred_opt_off_distorted = create_predictions("normal deviation", input_length, d, rng, pred_opt_off_copy)
+#             distorted = FtP(0, 0, pred_opt_off_distorted)
+#             alg_list.append(distorted)
+#
+#         pred_random = create_predictions("uniform random", input_length, rng)
+#         distorted = FtP(0, 0, pred_random)
+#         alg_list.append(distorted)
+#
+#         # all 0 seems to be very good
+#         pred_0 = create_predictions("all 0", input_length)
+#         distorted = FtP(0, 0, pred_0)
+#         alg_list.append(distorted)
+#
+#         # all 1 seems to be not as good as all 0
+#         pred_1 = create_predictions("all 1", input_length)
+#         distorted = FtP(0, 0, pred_1)
+#         alg_list.append(distorted)
+#
+#         algs_purchases, algs_acc_costs, algs_stocks, mindet_purchases, mindet_current_algs, mindet_acc_costs, mindet_stocks, mindet_cycles \
+#             = history.run_and_generate_history(phi, prices, demands, alg_list,
+#                                                False)
+#         #
+#         # print(algs_acc_costs[0][-1])
+#
+#         for j in range(1, len(alg_list)):
+#             e1 = compute_error(algs_stocks[0], algs_stocks[j])
+#             e1 /= algs_acc_costs[0][-1]
+#             eta1.append(e1)
+#
+#             e2 = compute_error(algs_purchases[0], algs_purchases[j])
+#             e2 /= algs_acc_costs[0][-1]
+#             eta2.append(e2)
+#
+#             ratio = algs_acc_costs[j][-1] / algs_acc_costs[0][-1]
+#             ratios.append(ratio)
+#
+#     return eta1, eta2, ratios
 
 
 # opt_stock_levels([2,1,3,4,5,1], [0,0,0.2,1.6,0.4,0.2])
