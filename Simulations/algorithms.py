@@ -61,7 +61,7 @@ class Algorithm:
 
     def update_stock(self, demand):
         if self.x + self.stock < demand:
-            print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {demand}. Rounding up.")
+            # print(f"The demand could not be covered. x too small. {self.x} + {self.stock} < {demand}. Rounding up.")
             self.x = demand - self.stock
             self.stock = 0
         elif self.x < demand:
@@ -166,6 +166,7 @@ class AlgorithmPred(Algorithm):
     def __init__(self, stock, cost, predictions):
         super().__init__(stock, cost)
         self.prediction = 0
+        self.predictions = predictions
         self.remaining_predictions = predictions.copy()
         self.remaining_predictions.reverse()  # reverse the list to be able to pop first element from list
 
