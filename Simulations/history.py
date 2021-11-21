@@ -371,7 +371,7 @@ class History:
                         pd.DataFrame([self.prices], columns=columns, index=["Price"]),
                         pd.DataFrame([self.demands], columns=columns, index=["Demand"])])
 
-        df = df.append(pd.DataFrame([map(str, list(self.purchases))], columns=columns, index=[f"$ \x(A) $"]))
+        df = df.append(pd.DataFrame([map(str, list(self.purchases))], columns=columns, index=[f"$ x(A) $"]))
         df = df.append(pd.DataFrame([list(self.acc_costs)], columns=columns, index=[f"$ \cost(A) $"]))
         df = df.append(pd.DataFrame([list(self.stocks)], columns=columns, index=[f"$ \stock(A) $"]))
 
@@ -398,15 +398,11 @@ class History:
 
         print(output_table)
 
-    def plot_history_costs(self, with_color=True):
+    def plot_history_costs(self, name="$A$", color="k"):
         len_input = len(self.acc_costs)
 
-        if with_color:
-            plt.plot(self.acc_costs, '-o', color=color_list[0])
-            plt.annotate(f"$A$", (len_input - .2, self.acc_costs[-1]), color=color_list[0])
-        else:
-            plt.plot(self.acc_costs, '-o', color="k")
-            plt.annotate(f"$A$", (len_input - .2, self.acc_costs[-1]), color="k")
+        plt.plot(self.acc_costs, '-o', color=color)
+        plt.annotate(name, (len_input - .2, self.acc_costs[-1]), color=color)
 
         plt.xlabel("Time step $ t $")
         plt.ylabel("Accumulated Costs $ cost_t $")
@@ -469,7 +465,7 @@ class MinDetHistory(HistoryPred):
     def run_full(self):
         for i in range(len(self.prices)):
             self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
-            self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i])
+            # self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i]) TODO
 
     def generate_history_df(self):
 
@@ -481,7 +477,7 @@ class MinDetHistory(HistoryPred):
                         pd.DataFrame([self.demands], columns=columns, index=["Demand"])])
 
         for i, alg in enumerate(self.algs_histories):
-            df = df.append(pd.DataFrame([map(str, list(alg.purchases))], columns=columns, index=[f"$ \x(A_{i}) $"]))
+            df = df.append(pd.DataFrame([map(str, list(alg.purchases))], columns=columns, index=[f"$ x(A_{i}) $"]))
             df = df.append(pd.DataFrame([list(alg.acc_costs)], columns=columns, index=[f"$ \cost(A_{i}) $"]))
             df = df.append(pd.DataFrame([list(alg.stocks)], columns=columns, index=[f"$ \stock(A_{i}) $"]))
 

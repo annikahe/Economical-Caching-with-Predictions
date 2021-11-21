@@ -58,4 +58,21 @@ Ex5A0 = FtP(0, 0, pred_A0)
 Ex5A1 = FtP(0, 0, pred_A1)
 Ex5A2 = FtP(0, 0, pred_A2)
 
-history.run_and_plot_history_mindet_sections(phi, prices, demands, [Ex5A0, Ex5A1, Ex5A2], True, gamma, "Ex5_2")
+# HistEx5A0 = history.History(gamma, phi, prices, demands, Ex5A0)
+# HistEx5A1 = history.History(gamma, phi, prices, demands, Ex5A1)
+# HistEx5A2 = history.History(gamma, phi, prices, demands, Ex5A2)
+#
+# HistEx5A0.run_full()
+# HistEx5A1.run_full()
+# HistEx5A2.run_full()
+#
+# HistEx5A0.plot_history_costs("A_0", "red")
+# HistEx5A1.plot_history_costs("A_1", "blue")
+# HistEx5A2.plot_history_costs("A_2", "green")
+
+mindet = history.MinDetHistory(gamma, phi, prices, demands, [Ex5A0, Ex5A1, Ex5A2])
+mindet.run_full()
+mindet.plot_history_mindet_sections()
+
+plt.show()
+# history.run_and_plot_history_mindet_sections(phi, prices, demands, [Ex5A0, Ex5A1, Ex5A2], True, gamma, "Ex5_2")
