@@ -1,8 +1,5 @@
-from algorithms import *
-import offline as off
-import numpy as np
-import matplotlib.pyplot as plt
-import history
+from Simulations.history import *
+
 
 def run_constant_prices_and_demands(c, num_rounds, gamma, phi, num_algs):
 
@@ -17,4 +14,9 @@ def run_constant_prices_and_demands(c, num_rounds, gamma, phi, num_algs):
     A0 = FtP(0, 0, pred_A0)
     A1 = FtP(0, 0, pred_A1)
 
-    history.run_and_print_history_table(phi, prices, demands, [A0, A1], True, gamma)
+    mindet = MinDetHistory(gamma, phi, prices, demands, [A0, A1])
+
+    mindet.run_full()
+    mindet.print_history_table()
+
+    # history.run_and_print_history_table(phi, prices, demands, [A0, A1], True, gamma)

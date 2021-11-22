@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.random import default_rng
-import offline as off
+import Simulations.offline as off
 
 
 # Generate predictions independently from the instance and the optimal solution

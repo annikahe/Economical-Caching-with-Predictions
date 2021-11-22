@@ -1,10 +1,10 @@
-from algorithms import *
-from instances import *
-import offline as off
+from Simulations.algorithms import *
+from Simulations.instances import *
+import Simulations.offline as off
 import numpy as np
 import matplotlib.pyplot as plt
-import history
-import examples as ex
+import Simulations.history as history
+import Simulations.examples as ex
 
 
 # num_repetitions = 2
