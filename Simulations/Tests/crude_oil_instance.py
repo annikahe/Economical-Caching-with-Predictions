@@ -11,7 +11,7 @@ import pandas as pd
 
 # Prices
 # crude oil prices_daily in dollars (02.01.1986 - 09.07.2018)
-prices_daily = pd.read_excel(r'../Data/Crude_Oil_Prices_Daily.xlsx')
+prices_daily = pd.read_excel(r'../../Data/Crude_Oil_Prices_Daily.xlsx')
 
 quarters_starts = ['01-01', '04-01', '07-01', '10-01']
 quarters_ends = ['03-31', '06-30', '09-30', '12-31']
@@ -72,4 +72,4 @@ ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
 mindet = MinDetHistory(1, phi, prices, demands, [rpa, ftp])
 mindet.run_full()
 
-ph.save_objects([mindet, opt_off], 'Tests/Instances/crude_oil.pkl')
+ph.save_objects([mindet, opt_off], '../Tests/Instances/crude_oil.pkl')
