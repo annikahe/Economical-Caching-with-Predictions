@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Algorithm:
     """
     Basic framework for online algorithms for the Economical Caching Problem.
@@ -43,6 +44,7 @@ class Algorithm:
     get_max_amount_buy(self, demand)
         Returns the maximum amount that the algorithm can buy in this time step.
     """
+
     def __init__(self, stock, cost):
         self.stock = stock
         self.cost = cost
@@ -108,6 +110,7 @@ class MinDet(Algorithm):
     update_current_alg()
         Update self.current_alg based on self.cycle.
     """
+
     def __init__(self, stock, cost, alg_list):
         super().__init__(stock, cost)
         self.alg_list = alg_list
@@ -144,6 +147,72 @@ class MinDet(Algorithm):
         self.current_alg = self.cycle % len(self.alg_list)
 
 
+class MinRand(Algorithm):
+    """
+    Class for MIN^rand algorithm.
+
+    Attributes
+    ----------
+    alg_list : list
+        List of the input algorithms that MIN^det uses.
+    cycle : int
+        Index of the current cycle (an cycle ends when MIN^det switches to another algorithm).
+    current_alg : int
+        Index of the input algorithm that is currently followed by MIN^det.
+
+    Methods
+    -------
+    run(gamma, phi, price, demand)
+        Overwrites the implementation of this function in the superclass.
+        Additionally to just executing the algorithm itself, it also needs to execute the input algorithms
+        and update self.cycle and self.current_alg.
+
+    buy(phi, price, demand)
+        Buys the same amount that the currently followed input algorithm buys.
+
+    update_cycle(gamma, phi, price, current_stocks_algs)
+        Update the cycle index if the accumulated cost of the currently followed input algorithm exceeds the threshold.
+
+    update_current_alg()
+        Update self.current_alg based on self.cycle.
+    """
+
+    def __init__(self, stock, cost, alg_list, eps):
+        super().__init__(stock, cost)
+        self.alg_list = alg_list
+        self.current_alg = 0
+        self.weights = [1 for _ in alg_list]
+        self.eps = eps
+        self.beta = 1 - eps/2
+
+    def run(self, gamma, phi, price, demand):
+        """
+        This is the main function of the MIN^det algorithm.
+        For a given input (one time step of the sequence) it decides how much to buy and updates all parameters.
+        It runs the helper functions defined below.
+        """
+        current_stocks_algs = [alg.stock for alg in self.alg_list]
+        for i, alg in enumerate(self.alg_list):
+            alg.run(gamma, phi, price, demand)
+        self.update_weights()
+        weights_sum = np.sum(w for w in self.weights)
+        probabilities = [w / weights_sum for w in self.weights]
+        self.update_current_alg(probabilities)
+        self.buy(phi, price, demand)
+        self.update_cost(price)  # defined in superclass
+        self.update_stock(demand)  # defined in superclass
+
+    def buy(self, phi, price, demand):
+        self.x = self.alg_list[self.current_alg].x
+
+    def update_current_alg(self, probabilities):
+        self.current_alg = np.random.choice(self.alg_list, 1, p=probabilities)
+        # TODO: use mass transferred from prob_i^t to prob_j^t+1
+
+    def update_weights(self):
+        self.weights = [self.weights[i] * self.beta**(self.alg_list[i]/self.phi) for i in range(len(self.weights))]
+
+
 class AlgorithmPred(Algorithm):
     """
     This is the class of online algorithms with predictions.
@@ -163,6 +232,7 @@ class AlgorithmPred(Algorithm):
         The value is removed from the list.
 
     """
+
     def __init__(self, stock, cost, predictions):
         super().__init__(stock, cost)
         self.prediction = 0
@@ -205,6 +275,7 @@ class RPA(Algorithm):
     """
     Implementation of the "Reservationspreis"-algorithm with parameter sqrt(phi).
     """
+
     def buy(self, phi, price, demand):
         if price <= np.sqrt(phi):
             self.x = self.get_max_amount_buy(demand)
@@ -216,6 +287,38 @@ class FtP(AlgorithmPred):
     """
     Implementation of the Follow-the-Prediction algorithm.
     """
+
     def buy(self, phi, price, demand):
         self.update_prediction()
         self.x = np.max([0, self.prediction - self.stock + demand])
+
+
+class Threat(Algorithm):
+    def __init__(self, stock, cost):
+        super().__init__(stock, cost)
+        self.demands = []
+        self.t = 0
+
+    def update_demands(self, demand):
+        self.demands.append(demand)
+
+    def g(self, t, x, price, demand):
+        if t == 0:
+            return 1
+        elif x > price:
+            return 0
+        else:
+            return np.min([self.g(t - 1, x, price, self.demands[t - 1]) + demand, 1])
+
+    def buy(self, phi, price, demand):
+        from scipy import integrate
+        from scipy.special import lambertw
+
+        self.update_demands(demand)
+
+        r_star = 1 / (lambertw((1 - phi) / (np.exp(1) * phi)) + 1)
+
+        def integrand(x): return (self.g(self.t - 1, x, price, self.demands[self.t - 1]) -
+                                  self.g(self.t, x, price, demand)) / (phi - x)
+
+        self.x = demand + r_star * integrate.quad(integrand, 1, phi / r_star)
