@@ -95,11 +95,12 @@ def moving_average(a, window_size=3) :
     return ret[window_size - 1:] / window_size
 
 
-def get_error_and_ratios(errors, ratios, window_size, num_repetitions=1):
+def get_error_and_ratios(errors, ratios, window_size, num_repetitions=1, drop_duplicates=True):
     df = pd.DataFrame({"Errors": errors, "Ratios": ratios})
     df = df.sort_values("Errors")
     print(len(df))
-    df = df.drop_duplicates()
+    if drop_duplicates:
+        df = df.drop_duplicates()
     print(len(df))
     e = df['Errors'].values.tolist()
     r = df['Ratios'].values.tolist()
