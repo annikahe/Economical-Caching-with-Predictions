@@ -364,6 +364,13 @@ class History:
     def get_comp_ratio(self, opt_off):
         return self.alg.cost / opt_off.alg.cost
 
+    def get_additive_term(self, opt_off):
+        """
+        The algorithm incurs a cost of the form "cost(OFF) + x"
+        :return: the value of x
+        """
+        return self.alg.cost - opt_off.alg.cost
+
     def get_stock_error(self, opt_off):
         if isinstance(self.alg, AlgorithmPred):
             return np.sum(np.abs(self.alg.predictions[i] - opt_off.stocks[i]) for i in range(len(opt_off.stocks)))
