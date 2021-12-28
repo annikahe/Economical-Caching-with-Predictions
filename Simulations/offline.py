@@ -98,10 +98,8 @@ def moving_average(a, window_size=3) :
 def get_error_and_ratios(errors, ratios, window_size, num_repetitions=1, drop_duplicates=True):
     df = pd.DataFrame({"Errors": errors, "Ratios": ratios})
     df = df.sort_values("Errors")
-    print(len(df))
     if drop_duplicates:
         df = df.drop_duplicates()
-    print(len(df))
     e = df['Errors'].values.tolist()
     r = df['Ratios'].values.tolist()
     for i in range(num_repetitions):
@@ -111,6 +109,20 @@ def get_error_and_ratios(errors, ratios, window_size, num_repetitions=1, drop_du
     # print(moving_average(y, 200))
 
     return e, r
+
+
+def get_phi_and_ratios(phis, errors, ratios, window_size, num_repetitions=1, drop_duplicates=True):
+    df = pd.DataFrame({"Phi": phis, "Errors": errors, "Ratios": ratios})
+    # df = df.sort_values("Phi")
+    if drop_duplicates:
+        df = df.drop_duplicates()
+    p = df['Phi'].values.tolist()
+    r = df['Ratios'].values.tolist()
+    for i in range(num_repetitions):
+        p = moving_average(p, window_size)
+        r = moving_average(r, window_size)
+
+    return p, r
 
 
 def create_predictions(method="normal", input_length=0, deviation=0,  rng=default_rng(), pred=[]):
