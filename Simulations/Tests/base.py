@@ -1,7 +1,6 @@
 import Simulations.instances as inst
 import Simulations.pickle_helpers as ph
 import Simulations.offline as off
-from Simulations.algorithms import *
 from Simulations.history import *
 
 import pandas as pd

@@ -1,9 +1,7 @@
 from Simulations.algorithms import *
-# import Simulations.offline as off
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 import pandas as pd
-import Simulations.predictions as pred
 
 import numpy as np
 

@@ -1,6 +1,3 @@
-from Simulations.algorithms import *
-import Simulations.offline as off
-import Simulations.predictions as pred
 from Simulations.history import *
 import Simulations.pickle_helpers as ph
 
@@ -71,11 +68,16 @@ ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
 mindet = MinDetHistory(1, phi, prices, demands, [RPA(0, 0), ftp])
 mindet.run_full()
 
-# rpa = History(1, phi, prices, demands, RPA(0, 0))
-# rpa.run_full()
-#
-#
-# threat = History(1, phi, prices, demands, Threat(0, 0))
-# threat.run_full()
+rpa = History(1, phi, prices, demands, RPA(0, 0))
+rpa.run_full()
 
-ph.save_object({"off": opt_off, "mindet": mindet}, '../Tests/Instances/crude_oil.pkl')
+
+threat = History(1, phi, prices, demands, Threat(0, 0))
+threat.run_full()
+
+ph.save_object({"off": opt_off,
+                "mindet": mindet,
+                "rpa": rpa,
+                "threat": threat
+                },
+               '../Tests/Instances/crude_oil.pkl')
