@@ -6,6 +6,7 @@ from Simulations.history import *
 
 import pandas as pd
 from numpy.random import default_rng
+from tqdm import tqdm
 
 
 def generate_instance(treatment_instance, input_len, phi):
@@ -17,6 +18,58 @@ def generate_instance(treatment_instance, input_len, phi):
         demands = inst.demands_uniform(input_len)
 
     return prices, demands
+
+
+def quality_of_ftp(prices, demands, num_repetitions, prediction_type="normal deviation"):
+    pred_opt_off = pred.opt_off(prices, demands)
+    phi = np.max(prices)
+    input_length = len(prices)
+
+    eta1 = []
+    eta2 = []
+    ratios = []
+
+    for i in range(num_repetitions):
+        alg_list, opt = create_algs_for_one_repetition(i, pred_opt_off, prediction_type, phi, prices, demands)
+
+        for alg in alg_list:
+            alg.run_full()
+
+            e1 = alg.get_stock_error(opt)
+            eta1.append(e1)
+
+            e2 = alg.get_purchase_error(opt)
+            eta2.append(e2)
+
+            ratios.append(alg.get_comp_ratio(opt))
+
+    return eta1, eta2, ratios
+
+
+def quality_of_ftp_just_additive_terms(prices, demands, num_repetitions, prediction_type="normal deviation"):
+    pred_opt_off = pred.opt_off(prices, demands)
+    phi = np.max(prices)
+    input_length = len(prices)
+
+    eta1 = []
+    eta2 = []
+    additive_terms = []
+
+    for i in range(num_repetitions):
+        alg_list, opt = create_algs_for_one_repetition(i, pred_opt_off, prediction_type, phi, prices, demands)
+
+        for alg in alg_list:
+            alg.run_full()
+
+            e1 = alg.get_stock_error(opt)
+            eta1.append(e1)
+
+            e2 = alg.get_purchase_error(opt)
+            eta2.append(e2)
+
+            additive_terms.append(alg.get_additive_term(opt))
+
+    return eta1, eta2, additive_terms
 
 
 def quality_ftp_depending_on_phi(errors, ratios, phis):
@@ -57,9 +110,30 @@ def evaluate_error_ratio(eval_func, treatments_input, treatments_predictions, nu
             ph.save_objects([eta1, eta2, ratios], f'Instances/{file_name}_input-{ti}_preds-{tp}_phi-{phi}.pkl')
 
 
-def evaluate_phi_ratio():
-    pass
-    # TODO
+def evaluate_phi_ratio(eval_func, treatments_input, treatments_predictions, num_generations, num_repetitions,
+                       input_len, phi_list, file_name='evaluate-phi-ratio'):
+    for ti in treatments_input:
+        for tp in treatments_predictions:
+            phi_errors_ratios = []
+            for phi in tqdm(phi_list):
+                eta1 = []
+                eta2 = []
+                ratios = []
+
+                for i in range(num_generations):
+                    prices, demands = generate_instance(ti, input_len, phi)
+
+                    if tp == "uniform":
+                        e1, e2, r = eval_func(prices, demands, num_repetitions * 10, prediction_type=tp)
+                    else:
+                        e1, e2, r = eval_func(prices, demands, num_repetitions, prediction_type=tp)
+
+                    eta1.extend(e1)
+                    eta2.extend(e2)
+                    ratios.extend(r)
+                phi_errors_ratios.append((phi, eta1, eta2, ratios))
+
+            ph.save_object([phi_errors_ratios], f'Instances/{file_name}_input-{ti}_preds-{tp}.pkl')
 
 
 def create_algs_for_one_repetition(i, pred_opt_off, prediction_type, phi, prices, demands):
