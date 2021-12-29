@@ -7,8 +7,6 @@ import Simulations.pickle_helpers as ph
 import numpy as np
 import pandas as pd
 
-
-
 # Prices
 # crude oil prices_daily in dollars (02.01.1986 - 09.07.2018)
 prices_daily = pd.read_excel(r'../../Data/Crude_Oil_Prices_Daily.xlsx')
@@ -18,12 +16,14 @@ quarters_ends = ['03-31', '06-30', '09-30', '12-31']
 
 
 def get_quarter_average(year, quarter_start, quarter_end):
-    quarter = prices_daily[(prices_daily['Date'] >= f'{year}-{quarter_start}') & (prices_daily['Date'] <= f'{year}-{quarter_end}')]
+    quarter = prices_daily[(prices_daily['Date'] >= f'{year}-{quarter_start}')
+                           & (prices_daily['Date'] <= f'{year}-{quarter_end}')]
     quarter = quarter[['Closing Value']].dropna()  # remove NaNs
     return quarter[['Closing Value']].sum()/len(quarter)
 
 
-prices_quarterly_df = pd.DataFrame([get_quarter_average(year, quarters_starts[i], quarters_ends[i]) for year in range(1994, 2019) for i in range(4)])
+prices_quarterly_df = pd.DataFrame([get_quarter_average(year, quarters_starts[i], quarters_ends[i])
+                                    for year in range(1994, 2019) for i in range(4)])
 prices_quarterly_df = prices_quarterly_df.dropna()
 
 prices_quarterly = prices_quarterly_df['Closing Value'].values.tolist()
@@ -67,11 +67,9 @@ pred_opt_off = pred.opt_off(prices, demands)
 opt_off = History(1, phi, prices, demands, FtP(0, 0, pred_opt_off))
 opt_off.run_full()
 
-
 ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
 mindet = MinDetHistory(1, phi, prices, demands, [RPA(0, 0), ftp])
 mindet.run_full()
-
 
 # rpa = History(1, phi, prices, demands, RPA(0, 0))
 # rpa.run_full()
@@ -79,6 +77,5 @@ mindet.run_full()
 #
 # threat = History(1, phi, prices, demands, Threat(0, 0))
 # threat.run_full()
-
 
 ph.save_object({"off": opt_off, "mindet": mindet}, '../Tests/Instances/crude_oil.pkl')

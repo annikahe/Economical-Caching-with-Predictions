@@ -19,7 +19,7 @@ if __name__ == '__main__':
     treatments_input = ['normal', 'uniform']
     treatments_predictions = ['normal', 'uniform', '0', '1']
 
-    treatment = 'at' # choose from ['cr', 'at'] ('cr' = competitive ratio, 'at' = additive term)
+    treatment = 'at'  # choose from ['cr', 'at'] ('cr' = competitive ratio, 'at' = additive term)
 
     if treatment == 'cr':
         base.evaluate_error_ratio(base.quality_of_ftp, treatments_input, treatments_predictions, num_generations,

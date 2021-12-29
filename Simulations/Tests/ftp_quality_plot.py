@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     treatment = 'cr'  # choose from ['cr', 'at'] ('cr' = competitive ratio, 'at' = additive term)
 
-    phi = 100
+    phi_val = 100
 
     if treatment == 'cr':
         for ti in treatments_input:
@@ -91,10 +91,11 @@ if __name__ == '__main__':
                     ax.set_xlabel("Error $\eta$")
                     ax.set_ylabel("Additive Term")
                     # ax.set_ylim([1, 2])
-                    at1 = [additive_term_stock_level(phi, eta) for eta in e1]
-                    at2 = [additive_term_purchase(phi, eta) for eta in e2]
+                    at1 = [additive_term_stock_level(phi_val, eta) for eta in e1]
+                    at2 = [additive_term_purchase(phi_val, eta) for eta in e2]
                     ax.plot(e1, at1, '--', color='tab:blue', label="Theoretical guarantee - stock level based error")
-                    ax.plot(e2, at2, '--', color='tab:orange', label="Theoretical guarantee - purchase amount based error")
+                    ax.plot(e2, at2, '--', color='tab:orange',
+                            label="Theoretical guarantee - purchase amount based error")
                     ax.grid(color='k', linestyle='dotted')
                     if ti == "uniform" and tp == "normal":
                         ax.legend()
