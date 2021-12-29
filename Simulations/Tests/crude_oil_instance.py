@@ -1,5 +1,6 @@
 from Simulations.history import *
 import Simulations.pickle_helpers as ph
+import Simulations.predictions as pred
 
 import numpy as np
 import pandas as pd
@@ -64,9 +65,16 @@ pred_opt_off = pred.opt_off(prices, demands)
 opt_off = History(1, phi, prices, demands, FtP(0, 0, pred_opt_off))
 opt_off.run_full()
 
-ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
-mindet = MinDetHistory(1, phi, prices, demands, [RPA(0, 0), ftp])
+ftp = History(1, phi, prices, demands, FtP(0, 0, pred.predictions_normal_off(pred_opt_off)))
+ftp.run_full()
+
+mindet = MinDetHistory(1, phi, prices, demands, [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off))])
 mindet.run_full()
+
+eps = .5
+minrand = MinRandHistory(1, phi, prices, demands,
+                         [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off))], eps)
+minrand.run_full()
 
 rpa = History(1, phi, prices, demands, RPA(0, 0))
 rpa.run_full()
@@ -76,8 +84,47 @@ threat = History(1, phi, prices, demands, Threat(0, 0))
 threat.run_full()
 
 ph.save_object({"off": opt_off,
+                "ftp": ftp,
                 "mindet": mindet,
+                "minrand": minrand,
                 "rpa": rpa,
                 "threat": threat
                 },
                '../Tests/Instances/crude_oil.pkl')
+
+
+sigmas = [0, 0.000000001, 0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10, 100]
+mindet_list = []
+
+for s in sigmas:
+    mindet = MinDetHistory(1, phi, prices, demands,
+                           [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
+    mindet.run_full()
+
+    mindet_list.append((s, mindet))
+
+ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets.pkl')
+
+
+minrand_list = []
+eps = .5
+
+for s in sigmas:
+    minrand = MinRandHistory(1, phi, prices, demands,
+                            [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
+    minrand.run_full()
+
+    minrand_list.append((s, minrand))
+
+ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands.pkl')
+
+
+ftp_list = []
+
+for s in sigmas:
+    ftp = History(1, phi, prices, demands, FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s)))
+    ftp.run_full()
+
+    ftp_list.append((s, ftp))
+
+ph.save_object(ftp_list, '../Tests/Instances/crude_oil_ftps.pkl')

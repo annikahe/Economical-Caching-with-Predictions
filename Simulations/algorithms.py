@@ -80,6 +80,12 @@ class Algorithm:
     def get_max_amount_buy(self, demand):
         return 1 - self.stock + demand
 
+    def get_min_amount_buy(self, demand):
+        return demand - self.stock
+
+    def get_current_cost(self, price):
+        return self.x * price
+
 
 class MinDet(Algorithm):
     """
@@ -132,7 +138,7 @@ class MinDet(Algorithm):
         self.update_stock(demand)  # defined in superclass
 
     def buy(self, phi, price, demand):
-        self.x = self.alg_list[self.current_alg].x
+        self.x = np.clip(self.alg_list[self.current_alg].x, self.get_min_amount_buy(demand), self.get_max_amount_buy(demand))
 
     def update_cycle(self, gamma, phi, price, current_stocks_algs):
         stock_old = self.stock
@@ -192,7 +198,7 @@ class MinRand(Algorithm):
         # current_stocks_algs = [alg.stock for alg in self.alg_list]
         for i, alg in enumerate(self.alg_list):
             alg.run(gamma, phi, price, demand)
-        self.update_weights(phi)
+        self.update_weights(phi, price)
         weights_sum = np.sum(w for w in self.weights)
         probabilities = [w / weights_sum for w in self.weights]
         self.update_current_alg(probabilities)
@@ -201,14 +207,14 @@ class MinRand(Algorithm):
         self.update_stock(demand)  # defined in superclass
 
     def buy(self, phi, price, demand):
-        self.x = self.alg_list[self.current_alg].x
+        self.x = np.clip(self.alg_list[self.current_alg].x, self.get_min_amount_buy(demand), self.get_max_amount_buy(demand))
 
     def update_current_alg(self, probabilities):
-        self.current_alg = np.random.choice(self.alg_list, 1, p=probabilities)
+        self.current_alg = np.random.choice(range(len(self.alg_list)), 1, p=probabilities)[0]
         # TODO: use mass transferred from prob_i^t to prob_j^t+1
 
-    def update_weights(self, phi):
-        self.weights = [self.weights[i] * self.beta**(self.alg_list[i]/phi) for i in range(len(self.weights))]
+    def update_weights(self, phi, price):
+        self.weights = [self.weights[i] * self.beta**(self.alg_list[i].get_current_cost(price)/phi) for i in range(len(self.weights))]
 
 
 class AlgorithmPred(Algorithm):

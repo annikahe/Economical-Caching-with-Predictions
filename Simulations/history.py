@@ -594,6 +594,103 @@ class MinDetHistory:
         plt.legend(lines, labels)
 
 
+class MinRandHistory:
+    def __init__(self, gamma, phi, prices, demands, alg_list, eps):
+        self.gamma = gamma
+        self.phi = phi
+        self.prices = prices
+        self.demands = demands
+        self.eps = eps
+        self.algs_histories = [History(gamma, phi, prices, demands, alg) for alg in alg_list]
+        self.minrand_history = History(gamma, phi, prices, demands,
+                                       MinRand(0, 0, [a.alg for a in self.algs_histories], eps))
+        self.minrand_current_algs = []
+
+    def run_step(self, gamma, phi, price, demand):
+        self.minrand_history.alg.run(gamma, phi, price, demand)
+        self.minrand_current_algs.append(self.minrand_history.alg.current_alg)
+
+        for alg in self.algs_histories:
+
+            alg.update_purchases()
+            alg.update_acc_costs()
+            alg.update_stocks()
+
+        self.minrand_history.update_purchases()
+        self.minrand_history.update_acc_costs()
+        self.minrand_history.update_stocks()
+
+    def run_full(self):
+        for i in range(len(self.prices)):
+            self.run_step(self.gamma, self.phi, self.prices[i], self.demands[i])
+            # self.opt_off.run(self.gamma, self.phi, self.prices[i], self.demands[i]) TODO
+
+    def generate_history_df(self):
+
+        len_input = len(self.prices)  # length of the input sequence
+        columns = list(range(len_input))
+
+        df = pd.concat([pd.DataFrame(columns=columns),
+                        pd.DataFrame([self.prices], columns=columns, index=["Price"]),
+                        pd.DataFrame([self.demands], columns=columns, index=["Demand"])])
+
+        for i, alg in enumerate(self.algs_histories):
+            df = df.append(pd.DataFrame([map(str, list(alg.purchases))], columns=columns, index=[f"$ x(A_{i}) $"]))
+            df = df.append(pd.DataFrame([list(alg.acc_costs)], columns=columns, index=[f"$ \cost(A_{i}) $"]))
+            df = df.append(pd.DataFrame([list(alg.stocks)], columns=columns, index=[f"$ \stock(A_{i}) $"]))
+
+        df = df.append(pd.DataFrame([self.minrand_history.purchases], columns=columns, index=["$ x(\mindet) $"]))
+        df = df.append(pd.DataFrame([self.minrand_history.acc_costs], columns=columns, index=["$ \cost(\mindet) $"]))
+        df = df.append(pd.DataFrame([self.minrand_history.stocks], columns=columns, index=["$ \stock(\mindet) $"]))
+        df = df.append(
+            pd.DataFrame([self.minrand_current_algs], columns=columns, index=["Alg. currently exec. by $ \mindet $"]))
+
+        df = df.applymap(lambda x: remove_trailing_zeros(x))
+
+        return df
+
+    def print_history_table(self):
+
+        len_input = len(self.prices)  # length of the input sequence
+
+        output_table = PrettyTable([""] + list(range(len_input)))
+
+        output_table.add_row(["Price"] + list(self.prices))
+        output_table.add_row(["Demand"] + list(self.demands))
+
+        for i, alg in enumerate(self.algs_histories):
+            output_table.add_row([f"x(ALG_{i})"] + list(alg.purchases))
+            output_table.add_row([f"cost(ALG_{i})"] + list(alg.acc_costs))
+            output_table.add_row([f"stock(ALG_{i})"] + list(alg.stocks))
+
+        output_table.add_row(["x(MIN^det)"] + list(self.minrand_history.purchases))
+        output_table.add_row(["cost(MIN^det)"] + list(self.minrand_history.acc_costs))
+        output_table.add_row(["Current_Alg"] + list(self.minrand_current_algs))
+        output_table.add_row(["stock(MIN^det)"] + list(self.minrand_history.stocks))
+        # output_table.add_row(["Ratio cost(MIN^det)/min(cost(A_i))"] + [
+        #     self.mindet_history.acc_costs /
+        # TODO
+
+        print(output_table)
+
+    def plot_history_costs(self, with_color=True):
+        len_input = len(self.algs_histories[0].acc_costs)
+
+        if with_color:
+            for i, alg in enumerate(self.algs_histories):
+                plt.plot(alg.acc_costs, '-o', color=color_list[i])
+                plt.annotate(f"$A_{i}$", (len_input - .2, alg.acc_costs[-1]), color=color_list[i])
+        else:
+            for i, alg in enumerate(self.algs_histories):
+                plt.plot(alg.acc_costs, '-o', color="k")
+                plt.annotate(f"$A_{i}$", (len_input - .2, alg.acc_costs[-1]), color="k")
+
+        plt.xlabel("Time step $ t $")
+        plt.ylabel("Accumulated Costs $ cost_t $")
+
+        plt.xlim([0, len_input + 1])
+
+
 # class Comparison:
 #     def __init__(self, alg0, alg1):
 #         self.alg0 = alg0
