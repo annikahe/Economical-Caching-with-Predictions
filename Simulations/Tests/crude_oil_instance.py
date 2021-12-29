@@ -67,9 +67,18 @@ pred_opt_off = pred.opt_off(prices, demands)
 opt_off = History(1, phi, prices, demands, FtP(0, 0, pred_opt_off))
 opt_off.run_full()
 
-rpa = RPA(0, 0)
+
 ftp = FtP(0, 0, pred.predictions_normal_off(pred_opt_off))
-mindet = MinDetHistory(1, phi, prices, demands, [rpa, ftp])
+mindet = MinDetHistory(1, phi, prices, demands, [RPA(0, 0), ftp])
 mindet.run_full()
 
-ph.save_objects([mindet, opt_off], '../Tests/Instances/crude_oil.pkl')
+
+# rpa = History(1, phi, prices, demands, RPA(0, 0))
+# rpa.run_full()
+#
+#
+# threat = History(1, phi, prices, demands, Threat(0, 0))
+# threat.run_full()
+
+
+ph.save_object({"off": opt_off, "mindet": mindet}, '../Tests/Instances/crude_oil.pkl')

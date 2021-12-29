@@ -30,7 +30,7 @@ def create_df_worst_with_min_det(phi, m, n_cycles):
         for j in range(n_cycles):
             if i == j % m:
                 round_cost = (j + 1) - accumulated_costs[i]
-                cost_data[m, j] =round_cost
+                cost_data[m, j] = round_cost
             else:
                 round_cost = 1 / phi
             accumulated_costs[i] += round_cost
@@ -84,4 +84,3 @@ def upper_bound_worst_case_with_min_det(phi, m, n_cycles):
             cost_data[i, j] = round_cost
     df = pd.DataFrame(cost_data)
     return df
-

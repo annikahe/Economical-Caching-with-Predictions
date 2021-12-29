@@ -7,12 +7,12 @@ import Simulations.offline as off
 
 def predictions_uniform(length):
     rng = default_rng()
-    return [rng.uniform() for x in range(length)]
+    return [rng.uniform() for _ in range(length)]
 
 
 def predictions_normal(length, mu=0.5, sigma=0.1):
     rng = default_rng()
-    return [np.clip(rng.normal(mu, sigma), 0, 1) for x in range(length)]
+    return [np.clip(rng.normal(mu, sigma), 0, 1) for _ in range(length)]
 
 
 def predictions_0(length):
@@ -31,9 +31,9 @@ def opt_off(prices, demands):
 
 # Generate predictions based on the optimal offline solution
 
-def predictions_normal_off(off, sigma=0.1):
+def predictions_normal_off(off_solution, sigma=0.1):
     rng = default_rng()
-    return [np.clip(rng.normal(x, sigma), 0, 1) for x in off]
+    return [np.clip(rng.normal(x, sigma), 0, 1) for x in off_solution]
 
 
 # Other

@@ -7,24 +7,24 @@ from numpy.random import default_rng
 
 def prices_uniform(length, phi):
     rng = default_rng()
-    return [rng.uniform(1, phi) for x in range(length)]
+    return [rng.uniform(1, phi) for _ in range(length)]
 
 
 def prices_normal(length, phi, mu=1, sigma=0.1):
     rng = default_rng()
-    return [np.clip(rng.normal(mu, sigma), 1, phi) for x in range(length)]
+    return [np.clip(rng.normal(mu, sigma), 1, phi) for _ in range(length)]
 
 
 # Generating demands
 
 def demands_uniform(length):
     rng = default_rng()
-    return [rng.uniform() for x in range(length)]
+    return [rng.uniform() for _ in range(length)]
 
 
 def demands_normal(length, mu=0.5, sigma=0.1):
     rng = default_rng()
-    return [np.max([0, rng.normal(mu, sigma)]) for x in range(length)]
+    return [np.max([0, rng.normal(mu, sigma)]) for _ in range(length)]
 
 
 # Other
@@ -41,4 +41,3 @@ def worst_case(phi, num_repetitions):
     demands = (2 * num_repetitions + 1) * [1/phi, 1, 1, 1, 1]
 
     return prices, demands
-

@@ -23,24 +23,24 @@ import create_df
 """
 
 
-def get_df(phi, m, n_cycles, input, with_title, with_min_det):
+def get_df(phi, m, n_cycles, input_type, with_title, with_min_det):
     """
     Wrapper function for the creation of a pandas dataframe that shows the costs incurred by the
     algorithms A_0, ..., A_{m-1} during the cycles.
     """
     if with_min_det:  # TODO: implement another bar for the cost of MIN^det
-        if input == "worst":
+        if input_type == "worst":
             df = create_df.create_df_worst_with_min_det(phi, m, n_cycles)
-        elif input == "equal":
+        elif input_type == "equal":
             df = create_df.create_df_equal_with_min_det(phi, m, n_cycles)
-        elif input == "upper-bound-worst":
+        elif input_type == "upper-bound-worst":
             df = create_df.upper_bound_worst_case_with_min_det(phi, m, n_cycles)
     else:
-        if input == "worst":
+        if input_type == "worst":
             df = create_df.create_df_worst(phi, m, n_cycles)
-        elif input == "equal":
+        elif input_type == "equal":
             df = create_df.create_df_equal(phi, m, n_cycles)
-        elif input == "upper-bound-worst":
+        elif input_type == "upper-bound-worst":
             df = create_df.upper_bound_worst_case(phi, m, n_cycles)
     return df
 
@@ -133,11 +133,11 @@ def dash_min_det_areas(bars, m, with_min_det):
                 alg_count += 1
 
 
-def plot_cost_bars(phi, m, n_cycles, input, with_title, with_min_det):
+def plot_cost_bars(phi, m, n_cycles, input_type, with_title, with_min_det):
     """
     Overall wrapper function for the plot creation.
     """
-    df = get_df(phi, m, n_cycles, input, with_title, with_min_det)
+    df = get_df(phi, m, n_cycles, input_type, with_title, with_min_det)
     label_df(df, with_min_det)
 
     if with_min_det:
@@ -170,12 +170,12 @@ def plot_cost_bars(phi, m, n_cycles, input, with_title, with_min_det):
     plt.ylabel(r"Accumulated costs in units of $\gamma\varphi$")
     if with_min_det:
         if with_title:
-            plt.savefig('Plots/' + input + '_with_min_det_' + 'with_title_' + str(m) + 'x' + str(n_cycles) + '.pdf')
+            plt.savefig('Plots/' + input_type + '_with_min_det_' + 'with_title_' + str(m) + 'x' + str(n_cycles)+'.pdf')
         else:
-            plt.savefig('Plots/' + input + '_with_min_det_' + str(m) + 'x' + str(n_cycles) + '.pdf')
+            plt.savefig('Plots/' + input_type + '_with_min_det_' + str(m) + 'x' + str(n_cycles) + '.pdf')
     else:
         if with_title:
-            plt.savefig('Plots/' + input + '_with_title_' + str(m) + 'x' + str(n_cycles) + '.pdf')
+            plt.savefig('Plots/' + input_type + '_with_title_' + str(m) + 'x' + str(n_cycles) + '.pdf')
         else:
-            plt.savefig('Plots/' + input + '_' + str(m) + 'x' + str(n_cycles) + '.pdf')
+            plt.savefig('Plots/' + input_type + '_' + str(m) + 'x' + str(n_cycles) + '.pdf')
     plt.show()

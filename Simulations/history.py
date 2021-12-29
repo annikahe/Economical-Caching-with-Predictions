@@ -1,6 +1,5 @@
 from Simulations.algorithms import *
 # import Simulations.offline as off
-import numpy as np
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 import pandas as pd
@@ -465,7 +464,7 @@ class History:
 #                  eta = {self.get_total_error()}"
 
 
-class MinDetHistory():
+class MinDetHistory:
     def __init__(self, gamma, phi, prices, demands, alg_list):
         self.gamma = gamma
         self.phi = phi
@@ -603,4 +602,3 @@ class MinDetHistory():
 #         self.alg1 = alg1
 #
 #     def compute_error
-

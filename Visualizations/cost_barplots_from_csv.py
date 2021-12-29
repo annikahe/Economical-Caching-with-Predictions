@@ -7,16 +7,16 @@ import create_df
 input_file = 'barplot-1'
 
 
-def name_columns(df):
-    n_cols = df.shape[1]
+def name_columns(dframe):
+    n_cols = dframe.shape[1]
     names = []
     for i in range(n_cols):
         names.append("Cycle "+str(i))
-    df.columns = names
+    dframe.columns = names
 
 
-def name_rows(df):
-    df.rename(lambda i: f"$A_{str(i)}$", axis='index', inplace=True)
+def name_rows(dframe):
+    dframe.rename(lambda i: f"$A_{str(i)}$", axis='index', inplace=True)
 
 
 plt.close("all")

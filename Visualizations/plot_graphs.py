@@ -14,8 +14,6 @@ from Simulations.instances import *
 # plt.savefig("Plots/min-eta.png")
 # plt.show()
 
-
-
 ######
 
 gamma = 1

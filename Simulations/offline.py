@@ -24,8 +24,9 @@ def take_from_stock(purchases, remaining_demand, current_step, current_price):
 
                 for pp in purchases:
                     if pp[0] < p[0] or p[0] < pp[0] < current_step:
-                        pp[2] -= min(purchase_amount, pp[2])  # decrease remaining stock levels of earlier and later steps up to current time step
-                    if p[0] < pp[0] < current_step: # increase stock levels of later time steps up to current time step
+                        pp[2] -= min(purchase_amount, pp[2])
+                        # decrease remaining stock levels of earlier and later steps up to current time step
+                    if p[0] < pp[0] < current_step:  # increase stock levels of later time steps up to current time step
                         pp[3] += min(purchase_amount, 1 - pp[3])
                     elif pp[0] == current_step:  # increase level of current stock
                         pp[2] += min(purchase_amount, 1 - pp[2])
@@ -41,7 +42,8 @@ def opt_stock_levels(prices, demands):
 
     getcontext().prec = 16
 
-    purchase_overview = [list(a) for a in zip(map(Decimal, range(len(prices))), prices, len(prices) * [1], len(prices) * [0])]
+    purchase_overview = [list(a) for a in zip(map(Decimal, range(len(prices))), prices,
+                                              len(prices) * [1], len(prices) * [0])]
 
     old_remaining_stock = Decimal(1)
     old_stock = Decimal(0)
@@ -54,9 +56,7 @@ def opt_stock_levels(prices, demands):
         old_remaining_stock = purchase_overview[t][2]
         old_stock = purchase_overview[t][3]
 
-    opt_stock_levels = [float(p[3]) for p in purchase_overview]
-
-    return opt_stock_levels
+    return [float(p[3]) for p in purchase_overview]
 
 
 # Error with respect to optimal offline algorithm
@@ -89,7 +89,7 @@ def comp_ratio_FtP_stock_error(phi, off, eta_norm):
 
 # plotting results
 
-def moving_average(a, window_size=3) :
+def moving_average(a, window_size=3):
     ret = np.cumsum(a, dtype=float)
     ret[window_size:] = ret[window_size:] - ret[:-window_size]
     return ret[window_size - 1:] / window_size
@@ -129,7 +129,7 @@ def create_predictions(method="normal", input_length=0, deviation=0,  rng=defaul
     if method == "normal":  # normal deviation from opt
         return [np.clip(x + rng.normal(0, deviation), 0, 1) for x in pred]
     elif method == "uniform":  # place predictions uniform in [0,1]
-        return [rng.uniform() for x in range(input_length)]
+        return [rng.uniform() for _ in range(input_length)]
     elif method == "1":
         return input_length * [1]
     elif method == "0":
@@ -200,6 +200,3 @@ def create_predictions(method="normal", input_length=0, deviation=0,  rng=defaul
 
 # TODO: compare optimal offline algorithm with that that always buys 0 or always buys 1
 # TODO: compare with completely random algorithm
-
-
-

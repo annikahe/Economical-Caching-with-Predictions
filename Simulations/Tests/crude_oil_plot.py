@@ -1,11 +1,17 @@
 import pickle
 
 with open(f'../Tests/Instances/crude_oil.pkl', 'rb') as inp:
-    mindet = pickle.load(inp)
-    print(mindet.mindet_history.alg.cost)
-
-    opt_off = pickle.load(inp)
-    print(opt_off.alg.cost)
+    algs = pickle.load(inp)
+    for alg_name in algs:
+        alg = algs[alg_name]
+        if alg_name == "off":
+            print(f"$\cost(OFF) =$ {alg.alg.cost}")
+        elif alg_name == "mindet":
+            print("$\cost(MIN^{det}) =$" + f" {alg.mindet_history.alg.cost}")
+        elif alg_name == "rpa":
+            print("$\cost(RPA) =$" + f" {alg.alg.cost}")
+        elif alg_name == "threat":
+            print("$\cost(Threat) =$" + f" {alg.alg.cost}")
 
 # off.plot_ratios(eta1, ratios, 1, 1)
 # eta_norm = np.linspace(0, 0.1, 100)

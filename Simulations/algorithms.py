@@ -155,8 +155,6 @@ class MinRand(Algorithm):
     ----------
     alg_list : list
         List of the input algorithms that MIN^det uses.
-    cycle : int
-        Index of the current cycle (an cycle ends when MIN^det switches to another algorithm).
     current_alg : int
         Index of the input algorithm that is currently followed by MIN^det.
 
@@ -191,10 +189,10 @@ class MinRand(Algorithm):
         For a given input (one time step of the sequence) it decides how much to buy and updates all parameters.
         It runs the helper functions defined below.
         """
-        current_stocks_algs = [alg.stock for alg in self.alg_list]
+        # current_stocks_algs = [alg.stock for alg in self.alg_list]
         for i, alg in enumerate(self.alg_list):
             alg.run(gamma, phi, price, demand)
-        self.update_weights()
+        self.update_weights(phi)
         weights_sum = np.sum(w for w in self.weights)
         probabilities = [w / weights_sum for w in self.weights]
         self.update_current_alg(probabilities)
@@ -209,8 +207,8 @@ class MinRand(Algorithm):
         self.current_alg = np.random.choice(self.alg_list, 1, p=probabilities)
         # TODO: use mass transferred from prob_i^t to prob_j^t+1
 
-    def update_weights(self):
-        self.weights = [self.weights[i] * self.beta**(self.alg_list[i]/self.phi) for i in range(len(self.weights))]
+    def update_weights(self, phi):
+        self.weights = [self.weights[i] * self.beta**(self.alg_list[i]/phi) for i in range(len(self.weights))]
 
 
 class AlgorithmPred(Algorithm):
@@ -264,8 +262,6 @@ class AlgorithmRandom(Algorithm):
         super().__init__(stock, cost)
 
     def buy(self, phi, price, demand):
-        import numpy as np
-
         lower_bound = np.max([0, demand - self.stock])
         upper_bound = 1 - self.stock + demand
         self.x = (upper_bound - lower_bound) * np.random.rand() + lower_bound
@@ -297,28 +293,47 @@ class Threat(Algorithm):
     def __init__(self, stock, cost):
         super().__init__(stock, cost)
         self.demands = []
+        self.prices = []
         self.t = 0
 
     def update_demands(self, demand):
         self.demands.append(demand)
 
-    def g(self, t, x, price, demand):
+    def update_prices(self, price):
+        self.prices.append(price)
+
+    def update_time_step(self):
+        self.t += 1
+
+    # def g(self, t, x, price, demand):
+    #     if t == 0:
+    #         return 1
+    #     elif x > price:
+    #         return 0
+    #     else:
+    #         return np.min([self.g(t - 1, x, price, self.demands[t - 1]) + demand, 1])
+
+    def g(self, t, x):
         if t == 0:
             return 1
-        elif x > price:
+        elif x > self.prices[t-1]:
             return 0
         else:
-            return np.min([self.g(t - 1, x, price, self.demands[t - 1]) + demand, 1])
+            return np.min([self.g(t - 1, x) + self.demands[t-1], 1])
 
     def buy(self, phi, price, demand):
         from scipy import integrate
         from scipy.special import lambertw
 
         self.update_demands(demand)
+        self.update_prices(price)
+        self.update_time_step()
 
         r_star = 1 / (lambertw((1 - phi) / (np.exp(1) * phi)) + 1)
 
-        def integrand(x): return (self.g(self.t - 1, x, price, self.demands[self.t - 1]) -
-                                  self.g(self.t, x, price, demand)) / (phi - x)
+        def integrand(x):
+            return (self.g(self.t - 1, x) - self.g(self.t, x)) / (phi - x)
+            # return (self.g(self.t - 1, x, price, self.demands[self.t - 1]) -
+            #         self.g(self.t, x, price, demand)) / (phi - x)
 
-        self.x = demand + r_star * integrate.quad(integrand, 1, phi / r_star)
+        self.x = demand + r_star * integrate.quad(integrand, 1, phi / r_star)[0]
