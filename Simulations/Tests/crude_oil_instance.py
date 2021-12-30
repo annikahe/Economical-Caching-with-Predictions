@@ -94,80 +94,93 @@ ph.save_object({"off": opt_off,
 
 
 sigmas = [0, 0.000000001, 0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 2, 3, 5, 10, 100]
+# mindet_list = []
+#
+# for s in sigmas:
+#     mindet = MinDetHistory(1, phi, prices, demands,
+#                            [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
+#     mindet.run_full()
+#
+#     mindet_list.append((s, mindet))
+#
+# ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets_rpa.pkl')
+#
+#
+# mindet_list = []
+#
+# for s in sigmas:
+#     mindet = MinDetHistory(1, phi, prices, demands,
+#                            [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
+#     mindet.run_full()
+#
+#     mindet_list.append((s, mindet))
+#
+# ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets_threat.pkl')
+#
+#
+# minrand_list = []
+# eps = .5
+#
+# for s in sigmas:
+#     minrand = MinRandHistory(1, phi, prices, demands,
+#                             [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
+#     minrand.run_full()
+#
+#     minrand_list.append((s, minrand))
+#
+# ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_rpa.pkl')
+#
+#
+# minrand_list = []
+# eps = .5
+#
+# for s in sigmas:
+#     minrand = MinRandHistory(1, phi, prices, demands,
+#                             [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
+#     minrand.run_full()
+#
+#     minrand_list.append((s, minrand))
+#
+# ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_threat.pkl')
+#
+#
+# minrand_list = []
+# eps_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+#
+# for eps in eps_list:
+#     for s in sigmas:
+#         minrand = MinRandHistory(1, phi, prices, demands,
+#                                 [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
+#         minrand.run_full()
+#
+#         minrand_list.append((eps, s, minrand))
+#
+# ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_threat_different_eps.pkl')
+
+
 mindet_list = []
+gamma_list = [1, 2, 3, 4, 5, 10]
 
-for s in sigmas:
-    mindet = MinDetHistory(1, phi, prices, demands,
-                           [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
-    mindet.run_full()
-
-    mindet_list.append((s, mindet))
-
-ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets_rpa.pkl')
-
-
-mindet_list = []
-
-for s in sigmas:
-    mindet = MinDetHistory(1, phi, prices, demands,
-                           [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
-    mindet.run_full()
-
-    mindet_list.append((s, mindet))
-
-ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets_threat.pkl')
-
-
-minrand_list = []
-eps = .5
-
-for s in sigmas:
-    minrand = MinRandHistory(1, phi, prices, demands,
-                            [RPA(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
-    minrand.run_full()
-
-    minrand_list.append((s, minrand))
-
-ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_rpa.pkl')
-
-
-minrand_list = []
-eps = .5
-
-for s in sigmas:
-    minrand = MinRandHistory(1, phi, prices, demands,
-                            [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
-    minrand.run_full()
-
-    minrand_list.append((s, minrand))
-
-ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_threat.pkl')
-
-
-minrand_list = []
-eps_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-
-for eps in eps_list:
+for gamma in gamma_list:
     for s in sigmas:
-        minrand = MinRandHistory(1, phi, prices, demands,
-                                [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))], eps)
-        minrand.run_full()
+        mindet = MinDetHistory(gamma, phi, prices, demands,
+                                [Threat(0, 0), FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s))])
+        mindet.run_full()
 
-        minrand_list.append((eps, s, minrand))
+        mindet_list.append((gamma, s, mindet))
 
-ph.save_object(minrand_list, '../Tests/Instances/crude_oil_minrands_threat_different_eps.pkl')
+ph.save_object(mindet_list, '../Tests/Instances/crude_oil_mindets_threat_different_gamma.pkl')
 
-
-
-ftp_list = []
-
-for s in sigmas:
-    ftp = History(1, phi, prices, demands, FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s)))
-    ftp.run_full()
-
-    ftp_list.append((s, ftp))
-
-ph.save_object(ftp_list, '../Tests/Instances/crude_oil_ftps.pkl')
-
-# save optimal offline solution to file
-ph.save_object(opt_off, '../Tests/Instances/crude_oil_opt_off.pkl')
+#
+# ftp_list = []
+#
+# for s in sigmas:
+#     ftp = History(1, phi, prices, demands, FtP(0, 0, pred.predictions_normal_off(pred_opt_off, s)))
+#     ftp.run_full()
+#
+#     ftp_list.append((s, ftp))
+#
+# ph.save_object(ftp_list, '../Tests/Instances/crude_oil_ftps.pkl')
+#
+# # save optimal offline solution to file
+# ph.save_object(opt_off, '../Tests/Instances/crude_oil_opt_off.pkl')
